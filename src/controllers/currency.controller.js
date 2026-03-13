@@ -61,17 +61,32 @@ exports.update = async (req, res) => {
 /* =========================
    ELIMINAR (lógico)
 ========================= */
-exports.delete = async (req, res) => {
+exports.toggleState = async (req, res) => {
   try {
-    const currency = await Currency.findByPk(req.params.id);
+    const id = req.params.id.toUpperCase();
 
-    if (!currency)
-      return res.status(404).json({ message: "Currency not found" });
+    const currency = await Currency.findByPk(id);
 
-   await currency.update({ activa: false });
+    if (!currency) {
+      return res.status(404).json({
+        message: "Currency not found"
+      });
+    }
 
-    res.json({ message: "Currency delete sucessfully" });
+    // 👇 usar getter correctamente
+    currency.state = !currency.state;
+
+    await currency.save();
+
+    // recargar desde BD
+    await currency.reload();
+
+    res.json(currency);
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({
+      message: error.message
+    });
   }
 };
