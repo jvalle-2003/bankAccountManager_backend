@@ -1,5 +1,4 @@
-const db = require("../models");
-const Reconciliations = db.Reconciliations;
+const Reconciliations = require("../models/reconciliations.model");
 
 exports.create = async (req, res) => {
   try {

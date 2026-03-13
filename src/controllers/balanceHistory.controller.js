@@ -1,5 +1,4 @@
-const db = require("../models");
-const BalanceHistory = db.BalanceHistory;
+const BalanceHistory = require("../models/balance_history.model");
 
 exports.create = async (req, res) => {
   try {

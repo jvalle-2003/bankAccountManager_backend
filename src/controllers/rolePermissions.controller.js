@@ -1,6 +1,4 @@
-const db = require("../models");
-const RolePermissions = db.RolePermissions;
-
+const RolePermissions = require("../models/role_permissions.model");
 // Asignar permiso a rol
 exports.create = async (req, res) => {
   try {

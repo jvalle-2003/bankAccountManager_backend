@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const categoryRoutes = require("./routes/category.routes");
+const transactionRoutes = require("./routes/transaction.routes");
 
 const app = express();
 
@@ -28,12 +30,8 @@ app.use("/api/reconciliations", require("./routes/reconciliations.routes"));
 app.use("/api/balance-history", require("./routes/balanceHistory.routes"));
 app.use("/api/role-permissions", require("./routes/rolePermissions.routes"));
 app.use("/api/periods", require("./routes/periods.routes"));
-
-
-
-
-
-
+app.use("/api/categories", categoryRoutes);
+app.use("/api/transactions", transactionRoutes);
 
 
 /* =========================

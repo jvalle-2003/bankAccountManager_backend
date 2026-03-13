@@ -1,6 +1,4 @@
-const db = require("../models");
-const Permissions = db.Permissions;
-
+const Permissions = require("../models/permissions.model");
 /* =========================
    CREAR PERMISO
 ========================= */

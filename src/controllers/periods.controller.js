@@ -1,5 +1,4 @@
-const db = require("../models");
-const Periods = db.Periods;
+const Periods = require("../models/periods.model");
 
 exports.create = async (req, res) => {
   try {
