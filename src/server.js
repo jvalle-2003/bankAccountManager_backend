@@ -10,11 +10,12 @@ async function startServer() {
     console.log("Connected to SQL Server");
 
     // Crear tablas SOLO si no existen
-    await sequelize.sync(); // usar alter o force si se modifican modelos
+    await sequelize.sync({ force: true }); // usar alter o force si se modifican modelos
     console.log("Syncronized models");
 
     // Levantar servidor
     app.listen(PORT, () => {
+      
       console.log(`Server running in port: ${PORT} `);
     });
 

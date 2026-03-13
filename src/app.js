@@ -22,6 +22,10 @@ app.use(express.urlencoded({ extended: true }));
 ========================= */
 
 app.use("/api/currencies", require("./routes/currency.routes"));
+app.use("/api/roles", require("./routes/role.routes"));
+app.use("/api/users", require("./routes/user.routes"));
+app.use("/api/audits", require("./routes/audit.routes"));
+
 
 
 /* =========================
