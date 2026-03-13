@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const categoryRoutes = require("./routes/category.routes");
+const transactionRoutes = require("./routes/transaction.routes");
 
 const app = express();
 
@@ -22,7 +24,8 @@ app.use(express.urlencoded({ extended: true }));
 ========================= */
 
 app.use("/api/currencies", require("./routes/currency.routes"));
-
+app.use("/api/categories", categoryRoutes);
+app.use("/api/transactions", transactionRoutes);
 
 /* =========================
    RUTA TEST
