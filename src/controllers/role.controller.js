@@ -1,7 +1,7 @@
 const Role = require("../models/role.model");
 
 /* =========================
-   CREAR MONEDA
+   CREAR ROLE
 ========================= */
 exports.create = async (req, res) => {
   try {
