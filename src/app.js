@@ -1,63 +1,23 @@
 const express = require("express");
 const cors = require("cors");
-const categoryRoutes = require("./routes/category.routes");
-const transactionRoutes = require("./routes/transaction.routes");
-
 const app = express();
 
-/* =========================
-   MIDDLEWARES
-========================= */
-
-// Permitir peticiones externas
 app.use(cors());
-
-// Leer JSON del body
 app.use(express.json());
 
-// Leer formularios
-app.use(express.urlencoded({ extended: true }));
+// Importamos solo lo que existe
+const bankRoutes = require("./routes/bank.routes");
+const accountTypeRoutes = require("./routes/accountType.routes");
+const bankAccountRoutes = require("./routes/bankAccount.routes");
 
-
-/* =========================
-   RUTAS API
-========================= */
-
-app.use("/api/currencies", require("./routes/currency.routes"));
-app.use("/api/roles", require("./routes/role.routes"));
-app.use("/api/users", require("./routes/user.routes"));
-app.use("/api/audits", require("./routes/audit.routes"));
-
-
-app.use("/api/permissions", require("./routes/permissions.routes")); // ← NUEVA LÍNEA
-app.use("/api/reconciliations", require("./routes/reconciliations.routes"));
-app.use("/api/balance-history", require("./routes/balanceHistory.routes"));
-app.use("/api/role-permissions", require("./routes/rolePermissions.routes"));
-app.use("/api/periods", require("./routes/periods.routes"));
-app.use("/api/categories", categoryRoutes);
-app.use("/api/transactions", transactionRoutes);
-
-
-/* =========================
-   RUTA TEST
-========================= */
+// Usamos las rutas
+app.use("/api/banks", bankRoutes);
+app.use("/api/account-types", accountTypeRoutes);
+app.use("/api/bank-accounts", bankAccountRoutes);
 
 app.get("/", (req, res) => {
-  res.json({
-    message: "Server running successfully"
-  });
+    res.json({ message: "SISTEMA FUNCIONANDO" });
 });
-
-
-/* =========================
-   MANEJO DE ERRORES 404
-========================= */
-
-app.use((req, res) => {
-  res.status(404).json({
-    message: "route not found"
-  });
-});
-
 
 module.exports = app;
+// Esta es la línea 24 o cerca, ya no hay Currency aquí.
