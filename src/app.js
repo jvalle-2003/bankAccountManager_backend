@@ -41,10 +41,10 @@ app.use("/api/transactions", transactionRoutes);
    RUTA TEST
 ========================= */
 
+const bankAccountRoutes = require("./routes/bankAccount.routes");
 const accountTypeRoutes = require("./routes/accountType.routes");
 app.get("/", (req, res) => {
 
-const bankAccountRoutes = require("./routes/bankAccount.routes");
   res.json({
     message: "Server running successfully"
   });
