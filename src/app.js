@@ -2,8 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const categoryRoutes = require("./routes/category.routes");
 const transactionRoutes = require("./routes/transaction.routes");
-
-
+const bankAccountRoutes = require("./routes/bankAccount.routes");
+const accountTypeRoutes = require("./routes/accountType.routes");
+const bankRoutes = require("./routes/bank.routes");
 const app = express();
 /* =========================
    MIDDLEWARES
@@ -15,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 // Importamos solo lo que existe
-const bankRoutes = require("./routes/bank.routes");
+
 // Leer formularios
 app.use(express.urlencoded({ extended: true }));
 
@@ -35,14 +36,14 @@ app.use("/api/role-permissions", require("./routes/rolePermissions.routes"));
 app.use("/api/periods", require("./routes/periods.routes"));
 app.use("/api/categories", categoryRoutes);
 app.use("/api/transactions", transactionRoutes);
-
-
+app.use("/api/banks", bankRoutes);
+app.use("/api/account-types", accountTypeRoutes);
+app.use("/api/bank-accounts", bankAccountRoutes);
 /* =========================
    RUTA TEST
 ========================= */
 
-const bankAccountRoutes = require("./routes/bankAccount.routes");
-const accountTypeRoutes = require("./routes/accountType.routes");
+
 app.get("/", (req, res) => {
 
   res.json({
@@ -63,10 +64,6 @@ app.use((req, res) => {
     message: "route not found"
   });
 
-// Usamos las rutas
-app.use("/api/banks", bankRoutes);
-app.use("/api/account-types", accountTypeRoutes);
-app.use("/api/bank-accounts", bankAccountRoutes);
 
 app.get("/", (req, res) => {
     res.json({ message: "SISTEMA FUNCIONANDO" });
