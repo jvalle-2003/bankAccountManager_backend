@@ -2,10 +2,15 @@ const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/user.controller");
 
-router.post("/", controller.create);
-router.get("/", controller.findAll);
-router.get("/:id", controller.findOne);
-router.put("/:id", controller.update);
-router.delete("/:id", controller.delete);
+// Rutas CRUD normales
+router.post("/", controller.create);           // Crear usuario (admin)
+router.get("/", controller.findAll);            // Listar todos
+router.get("/:id", controller.findOne);         // Obtener uno
+router.put("/:id", controller.update);          // Actualizar
+router.delete("/:id", controller.delete);       // Eliminar
+
+// NUEVAS RUTAS PARA REGISTRO Y CONFIRMACIÓN
+router.post("/register", controller.register);  // Registro público (con token)
+router.post("/confirm", controller.confirm);    // Confirmar token
 
 module.exports = router;
