@@ -22,4 +22,12 @@ router.delete("/:id", controller.delete);
 // router.put("/:id", checkPermission('EDITAR_CONCILIACION'), controller.update);
 // router.delete("/:id", checkPermission('ELIMINAR_CONCILIACION'), controller.delete);
 
+
+
+
+
+
+
+
+
 module.exports = router;
