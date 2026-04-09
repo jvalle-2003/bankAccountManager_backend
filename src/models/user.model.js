@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const Role = require("./role.model"); 
 
 const User = sequelize.define(
   "User",
@@ -8,7 +7,7 @@ const User = sequelize.define(
     user_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
-      autoIncrement: true, 
+      autoIncrement: true,
     },
     first_name: {
       type: DataTypes.STRING(15),
@@ -33,11 +32,10 @@ const User = sequelize.define(
     email: {
       type: DataTypes.STRING(50),
       allowNull: false,
-
     },
     username: {
       type: DataTypes.STRING(50),
-      allowNull: false, 
+      allowNull: false,
     },
     password: {
       type: DataTypes.STRING(15),
@@ -46,20 +44,12 @@ const User = sequelize.define(
     role_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: Role,    
-        key: "role_id", 
-      },
     },
   },
   {
-    tableName: "Users", 
-    timestamps: false,  
+    tableName: "Users",
+    timestamps: false,
   }
 );
-
-
-User.belongsTo(Role, { foreignKey: "role_id" });
-Role.hasMany(User, { foreignKey: "role_id" });
 
 module.exports = User;

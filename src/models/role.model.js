@@ -7,25 +7,24 @@ const Role = sequelize.define(
     role_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
-      autoIncrement: true, 
+      autoIncrement: true,
     },
     role_name: {
       type: DataTypes.STRING(50),
       allowNull: false,
-      
     },
     description: {
       type: DataTypes.STRING(100),
-      allowNull: true, 
+      allowNull: true,
     },
     active: {
-      type: DataTypes.BOOLEAN, 
+      type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
   },
   {
     tableName: "Roles",
-    timestamps: false, 
+    timestamps: false,
   }
 );
 
