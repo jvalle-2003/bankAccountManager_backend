@@ -15,7 +15,10 @@ const sequelize = new Sequelize(
                 trustServerCertificate: true
             }
         },
-        logging: false
+        logging: false,
+        define:{
+            hasTrigger: true
+        }
     }
 );
 

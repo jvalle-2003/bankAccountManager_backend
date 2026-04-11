@@ -1,24 +1,19 @@
 const Audit = require("../models/audit.model");
+const User = require("../models/user.model");
 
 /* =========================
-   CREAR AUDITORIA
-========================= */
-exports.create = async (req, res) => {
-  try {
-    const audit = await Audit.create(req.body);
-    res.status(201).json(audit);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* =========================
-   OBTENER TODAS
+   OBTENER TODAS (Lectura)
 ========================= */
 exports.findAll = async (req, res) => {
   try {
-    const audit = await Audit.findAll();
-    res.json(audit);
+    const audits = await Audit.findAll({
+      include: [{ 
+        model: User, 
+        attributes: ['user_id', 'username', 'email'] // Traemos datos del autor
+      }],
+      order: [['last_activity', 'DESC']] // Lo más reciente primero
+    });
+    res.json(audits);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -29,48 +24,13 @@ exports.findAll = async (req, res) => {
 ========================= */
 exports.findOne = async (req, res) => {
   try {
-    const audit = await Audit.findByPk(req.params.id);
+    const audit = await Audit.findByPk(req.params.id, {
+      include: [{ model: User, attributes: ['username', 'email'] }]
+    });
 
-    if (!audit)
-      return res.status(404).json({ message: "Audit not found" });
-
-    res.json(audit);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* =========================
-   ACTUALIZAR
-========================= */
-exports.update = async (req, res) => {
-  try {
-    const audit = await Audit.findByPk(req.params.id);
-
-    if (!audit)
-      return res.status(404).json({ message: "Audit not found" });
-
-    await audit.update(req.body);
+    if (!audit) return res.status(404).json({ message: "Registro no encontrado" });
 
     res.json(audit);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* =========================
-   ELIMINAR (lógico)
-========================= */
-exports.delete = async (req, res) => {
-  try {
-    const audit = await Audit.findByPk(req.params.id);
-
-    if (!audit)
-      return res.status(404).json({ message: "Audit not found" });
-
-   await audit.update({ activa: false });
-
-    res.json({ message: "Audit delete sucessfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
