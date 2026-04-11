@@ -52,7 +52,8 @@ exports.delete = async (req, res) => {
 };
 
 // ============================================
-// NUEVO: Obtener saldo por fecha específica
+// Obtener saldo por fecha específica
+// Busca el saldo más cercano (fecha igual o anterior)
 // ============================================
 exports.getBalanceByDate = async (req, res) => {
   try {
