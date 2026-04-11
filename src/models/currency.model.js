@@ -5,8 +5,9 @@ const Currency = sequelize.define(
   "Currency",
   {
     id_currency: {
-      type: DataTypes.STRING(3),
+      type: DataTypes.INTEGER,     // Cambiado de STRING a INTEGER
       primaryKey: true,
+      autoIncrement: true,        // Esto habilita el IDENTITY(1,1)
       allowNull: false
     },
     name: {
@@ -17,17 +18,11 @@ const Currency = sequelize.define(
       type: DataTypes.STRING(5),
       allowNull: false
     },
-state: {
-  type: DataTypes.INTEGER, // 👈 NO BOOLEAN
-  allowNull: false,
-  defaultValue: 1,
-  get() {
-    return this.getDataValue("state") === 1;
-  },
-  set(value) {
-    this.setDataValue("state", value ? 1 : 0);
-  }
-}
+    state: {
+      type: DataTypes.BOOLEAN,    // Ahora usamos BOOLEAN directamente
+      allowNull: false,
+      defaultValue: true          // El valor por defecto es true (1 en DB)
+    }
   },
   {
     tableName: "currencies",

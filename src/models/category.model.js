@@ -14,7 +14,7 @@ const Category = sequelize.define(
       allowNull: false
     },
     movement_type: {
-      type: DataTypes.ENUM("INCOME", "EXPENSE", "TRANSFER"),
+      type: DataTypes.ENUM("INGRESO", "EGRESO", "TRANSFERENCIA"),
       allowNull: false
     },
     active: {

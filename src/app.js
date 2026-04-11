@@ -61,10 +61,9 @@ app.use((req, res) => {
   res.status(404).json({
     });
 
-
     message: "route not found"
   });
-
+ 
 
 app.get("/", (req, res) => {
     res.json({ message: "SISTEMA FUNCIONANDO" });
