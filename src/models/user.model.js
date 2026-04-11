@@ -45,6 +45,11 @@ const User = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    active: {
+        type: DataTypes.BOOLEAN, // Sequelize convierte esto a BIT en SQL Server automáticamente
+        allowNull: false,
+        defaultValue: true
+    }
   },
   {
     tableName: "Users",

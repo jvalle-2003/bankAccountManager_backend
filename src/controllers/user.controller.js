@@ -2,25 +2,8 @@ const User = require("../models/user.model");
 const jwt = require('jsonwebtoken');
 const { sendEmail } = require('../utils/emailService');
 const sequelize = require("../config/db");
+const { runWithAudit } = require("../utils/audit.helper");
 
-/**
- * HELPER: Ejecuta operaciones dentro de una transacción configurando el contexto de auditoría.
- * Esto permite que el Trigger de SQL Server capture el user_id y la ip.
- */
-const runWithAudit = async (req, callback) => {
-  return await sequelize.transaction(async (t) => {
-    // 1. Extraer ID. Si no hay usuario, mandamos 'NULL' (texto) para evitar el error de Llave Foránea del ID 0
-    const userId = 9; 
-    const ip = req.ip || '127.0.0.1';
-
-    // 2. Establecer el contexto en SQL Server para esta conexión específica
-    await sequelize.query(`EXEC sp_set_session_context 'user_id', ${userId}`, { transaction: t });
-    await sequelize.query(`EXEC sp_set_session_context 'user_ip', '${ip}'`, { transaction: t });
-
-    // 3. Ejecutar la lógica del controlador
-    return await callback(t);
-  });
-};
 
 /* =========================
    CREAR USUARIO (CRUD normal)

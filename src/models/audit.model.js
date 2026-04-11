@@ -3,9 +3,15 @@ const sequelize = require("../config/db");
 const User = require("./user.model");
 
 const Audit = sequelize.define("Audit", {
-    audit_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    description: { type: DataTypes.STRING(250), allowNull: false },
-    // NUEVOS CAMPOS PARA EL TRIGGER
+    audit_id: { 
+      type: DataTypes.INTEGER, 
+      primaryKey: true, 
+      autoIncrement: true 
+    },
+    description: { 
+      type: DataTypes.STRING(250), 
+      allowNull: false 
+    },
     previous_values: { 
       type: DataTypes.TEXT, 
       allowNull: true 
