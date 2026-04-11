@@ -5,6 +5,8 @@ const transactionRoutes = require("./routes/transaction.routes");
 const bankAccountRoutes = require("./routes/bankAccount.routes");
 const accountTypeRoutes = require("./routes/accountType.routes");
 const bankRoutes = require("./routes/bank.routes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
+const statementRoutes = require('./routes/statementRoutes');
 const app = express();
 /* =========================
    MIDDLEWARES
@@ -39,7 +41,12 @@ app.use("/api/transactions", transactionRoutes);
 app.use("/api/banks", bankRoutes);
 app.use("/api/account-types", accountTypeRoutes);
 app.use("/api/bank-accounts", bankAccountRoutes);
+
 app.use("/api/auth", require("./routes/auth.routes"));
+
+app.use("/api/dashboard", dashboardRoutes);
+app.use('/api/statements', statementRoutes);
+
 /* =========================
    RUTA TEST
 ========================= */
