@@ -6,7 +6,9 @@ const bankAccountRoutes = require("./routes/bankAccount.routes");
 const accountTypeRoutes = require("./routes/accountType.routes");
 const bankRoutes = require("./routes/bank.routes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
-const statementRoutes = require('./routes/statementRoutes');
+
+//const statementRoutes = require('./routes/statementRoutes');
+const ocrRoutes = require('./routes/ocrRoutes');
 const app = express();
 /* =========================
    MIDDLEWARES
@@ -41,11 +43,13 @@ app.use("/api/transactions", transactionRoutes);
 app.use("/api/banks", bankRoutes);
 app.use("/api/account-types", accountTypeRoutes);
 app.use("/api/bank-accounts", bankAccountRoutes);
+app.use('/api/statements', require('./routes/statements'));
 
 app.use("/api/auth", require("./routes/auth.routes"));
 
 app.use("/api/dashboard", dashboardRoutes);
-app.use('/api/statements', statementRoutes);
+//app.use('/api/statements', statementRoutes);
+app.use('/api/ocr', ocrRoutes);
 
 /* =========================
    RUTA TEST
@@ -70,6 +74,7 @@ app.use((req, res) => {
 
     message: "route not found"
   });
+
  
 
 app.get("/", (req, res) => {

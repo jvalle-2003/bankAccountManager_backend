@@ -9,6 +9,7 @@ const BankAccount = require("./bankAccount.model");
 // ==========================================
 // MODELOS DE PERMISOS Y USUARIOS (agregar)
 // ==========================================
+const Transaction = require("./transaction.model");
 const User = require("./user.model");
 const Role = require("./role.model");
 const Permission = require("./permissions.model");
@@ -60,5 +61,6 @@ module.exports = {
     User,
     Role,
     Permission,
-    RolePermission
+    RolePermission,
+    Transaction
 };
