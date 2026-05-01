@@ -1,14 +1,22 @@
 const User = require("../models/user.model");
 const jwt = require('jsonwebtoken');
 const { sendEmail } = require('../utils/emailService');
+const sequelize = require("../config/db");
+const { runWithAudit } = require("../utils/audit.helper");
+
+// NUEVO: Importamos la utilidad de reportes
+const { generateReport } = require("../utils/report.generator");
 
 /* =========================
    CREAR USUARIO (CRUD normal)
 ========================= */
 exports.create = async (req, res) => {
   try {
-    const user = await User.create(req.body);
-    res.status(201).json(user);
+    await runWithAudit(req, async (t) => {
+      // IMPORTANTE: Se añade { transaction: t } a la consulta
+      const user = await User.create(req.body, { transaction: t });
+      res.status(201).json(user);
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -19,6 +27,7 @@ exports.create = async (req, res) => {
 ========================= */
 exports.findAll = async (req, res) => {
   try {
+    // Las consultas SELECT no activan triggers de auditoría (por lo general), no necesitan el helper
     const users = await User.findAll();
     res.json(users);
   } catch (error) {
@@ -33,8 +42,7 @@ exports.findOne = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
 
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json(user);
   } catch (error) {
@@ -47,14 +55,15 @@ exports.findOne = async (req, res) => {
 ========================= */
 exports.update = async (req, res) => {
   try {
-    const user = await User.findByPk(req.params.id);
+    await runWithAudit(req, async (t) => {
+      // Agregamos la transacción incluso al buscar, para mantener la coherencia
+      const user = await User.findByPk(req.params.id, { transaction: t });
 
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
+      if (!user) return res.status(404).json({ message: "User not found" });
 
-    await user.update(req.body);
-
-    res.json(user);
+      await user.update(req.body, { transaction: t });
+      res.json(user);
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -65,14 +74,14 @@ exports.update = async (req, res) => {
 ========================= */
 exports.delete = async (req, res) => {
   try {
-    const user = await User.findByPk(req.params.id);
+    await runWithAudit(req, async (t) => {
+      const user = await User.findByPk(req.params.id, { transaction: t });
 
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
+      if (!user) return res.status(404).json({ message: "User not found" });
 
-   await user.update({ active: false });
-
-    res.json({ message: "User deleted successfully" });
+      await user.update({ active: false }, { transaction: t });
+      res.json({ message: "User deleted successfully" });
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -83,39 +92,37 @@ exports.delete = async (req, res) => {
 ========================= */
 exports.register = async (req, res) => {
   try {
-    // Crear usuario (pero inactivo hasta confirmar)
-    const userData = {
-      ...req.body,
-      active: false  // Usuario inactivo hasta confirmar
-    };
-    
-    const user = await User.create(userData);
-    
-    // Generar token de confirmación (vence en 1 hora)
-    const token = jwt.sign(
-      { user_id: user.user_id, email: user.email },
-      'secreto_temporal',
-      { expiresIn: '1h' }
-    );
-    
-    // Enviar correo con token
-    const confirmLink = `http://localhost:3002/confirmar?token=${token}`;
-    
-    await sendEmail(
-      user.email,
-      'Confirma tu cuenta en GESBANCA',
-      `<h1>Bienvenido a GESBANCA</h1>
-       <p>Haz clic en el siguiente enlace para confirmar tu cuenta:</p>
-       <a href="${confirmLink}">Confirmar cuenta</a>
-       <p>O ingresa este token manualmente: <strong>${token}</strong></p>
-       <p>El token expira en 1 hora.</p>`
-    );
-    
-    res.status(201).json({ 
-      message: 'Usuario creado. Revisa tu correo para confirmar.',
-      user_id: user.user_id 
+    await runWithAudit(req, async (t) => {
+      const userData = {
+        ...req.body,
+        active: false  
+      };
+      
+      const user = await User.create(userData, { transaction: t });
+      
+      const token = jwt.sign(
+        { user_id: user.user_id, email: user.email },
+        'secreto_temporal',
+        { expiresIn: '1h' }
+      );
+      
+      const confirmLink = `http://localhost:3002/confirmar?token=${token}`;
+      
+      await sendEmail(
+        user.email,
+        'Confirma tu cuenta en GESBANCA',
+        `<h1>Bienvenido a GESBANCA</h1>
+         <p>Haz clic en el siguiente enlace para confirmar tu cuenta:</p>
+         <a href="${confirmLink}">Confirmar cuenta</a>
+         <p>O ingresa este token manualmente: <strong>${token}</strong></p>
+         <p>El token expira en 1 hora.</p>`
+      );
+      
+      res.status(201).json({ 
+        message: 'Usuario creado. Revisa tu correo para confirmar.',
+        user_id: user.user_id 
+      });
     });
-    
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -127,19 +134,61 @@ exports.register = async (req, res) => {
 exports.confirm = async (req, res) => {
   try {
     const { token } = req.body;
-    
-    // Verificar token
     const decoded = jwt.verify(token, 'secreto_temporal');
     
-    // Activar usuario
-    await User.update(
-      { active: true },
-      { where: { user_id: decoded.user_id } }
-    );
-    
-    res.json({ message: 'Cuenta confirmada exitosamente. Ya puedes iniciar sesión.' });
+    // Inyectamos temporalmente el usuario en req para que el helper sepa quién confirmó la cuenta
+    req.user = { user_id: decoded.user_id };
+
+    await runWithAudit(req, async (t) => {
+      await User.update(
+        { active: true },
+        { 
+          where: { user_id: decoded.user_id },
+          transaction: t 
+        }
+      );
+      
+      res.json({ message: 'Cuenta confirmada exitosamente. Ya puedes iniciar sesión.' });
+    });
     
   } catch (error) {
     res.status(400).json({ message: 'Token inválido o expirado' });
+  }
+};
+
+/* =========================
+   EXPORTAR REPORTE (NUEVO)
+========================= */
+exports.exportReport = async (req, res) => {
+  try {
+    const format = req.query.format || "excel";
+    const users = await User.findAll();
+
+    // 1. Configuramos cómo se verá en Excel
+    const excelConfig = {
+      columns: [
+        { header: "Usuario", key: "username", width: 20 },
+        { header: "Email", key: "email", width: 35 },
+        { header: "Estado", key: "status", width: 15 },
+      ],
+      data: users.map(u => ({
+        username: u.username,
+        email: u.email,
+        status: u.active ? "ACTIVO" : "INACTIVO"
+      }))
+    };
+
+    // 2. Configuramos cómo se verá en PDF
+    const pdfConfig = {
+      title: "Reporte de Usuarios",
+      headers: ["Usuario", "Email", "Estado"],
+      rows: users.map(u => [u.username, u.email, u.active ? "Activo" : "Inactivo"])
+    };
+
+    // 3. Llamamos a la función genérica
+    await generateReport(res, format, "Usuarios", excelConfig, pdfConfig);
+
+  } catch (error) {
+    res.status(500).json({ message: "Error", error: error.message });
   }
 };

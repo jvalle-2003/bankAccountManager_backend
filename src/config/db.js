@@ -8,14 +8,19 @@ const sequelize = new Sequelize(
     {
         host: process.env.DB_SERVER,
         dialect: "mssql",
+        timezone: '-06:00', // Zona horaria de SQL Server, importante para que los triggers guarden la hora correcta en la auditoría
         port: 1433,
         dialectOptions: {
             options: {
                 encrypt: false,
-                trustServerCertificate: true
+                trustServerCertificate: true,
+                useUTC: true //Zona horaria de SQL Server, importante para que los triggers guarden la hora correcta en la auditoría
             }
         },
-        logging: false
+        logging: false,
+        define:{
+            hasTrigger: true
+        }
     }
 );
 

@@ -1,19 +1,23 @@
 const Role = require("../models/role.model");
+const { runWithAudit } = require("../utils/audit.helper"); // <--- Importamos el helper
 
 /* =========================
    CREAR ROLE
 ========================= */
 exports.create = async (req, res) => {
   try {
-    const role = await Role.create(req.body);
-    res.status(201).json(role);
+    await runWithAudit(req, async (t) => {
+      // Pasamos { transaction: t } para que ocurra dentro del mismo contexto
+      const role = await Role.create(req.body, { transaction: t });
+      res.status(201).json(role);
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 /* =========================
-   OBTENER TODAS
+   OBTENER TODAS (No necesita auditoría)
 ========================= */
 exports.findAll = async (req, res) => {
   try {
@@ -25,15 +29,12 @@ exports.findAll = async (req, res) => {
 };
 
 /* =========================
-   OBTENER POR ID
+   OBTENER POR ID (No necesita auditoría)
 ========================= */
 exports.findOne = async (req, res) => {
   try {
     const role = await Role.findByPk(req.params.id);
-
-    if (!role)
-      return res.status(404).json({ message: "Role not found" });
-
+    if (!role) return res.status(404).json({ message: "Role not found" });
     res.json(role);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -45,14 +46,14 @@ exports.findOne = async (req, res) => {
 ========================= */
 exports.update = async (req, res) => {
   try {
-    const role = await Role.findByPk(req.params.id);
+    await runWithAudit(req, async (t) => {
+      const role = await Role.findByPk(req.params.id, { transaction: t });
 
-    if (!role)
-      return res.status(404).json({ message: "Role not found" });
+      if (!role) return res.status(404).json({ message: "Role not found" });
 
-    await role.update(req.body);
-
-    res.json(role);
+      await role.update(req.body, { transaction: t });
+      res.json(role);
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -63,14 +64,14 @@ exports.update = async (req, res) => {
 ========================= */
 exports.delete = async (req, res) => {
   try {
-    const role = await Role.findByPk(req.params.id);
+    await runWithAudit(req, async (t) => {
+      const role = await Role.findByPk(req.params.id, { transaction: t });
 
-    if (!role)
-      return res.status(404).json({ message: "Role not found" });
+      if (!role) return res.status(404).json({ message: "Role not found" });
 
-   await role.update({ active: false });
-
-    res.json({ message: "Role delete sucessfully" });
+      await role.update({ active: false }, { transaction: t });
+      res.json({ message: "Role deleted successfully" });
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
