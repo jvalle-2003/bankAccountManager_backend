@@ -14,9 +14,12 @@
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^8.0.3",
+    "pdfkit": "^0.18.0",
+    "pdfkit-table": "^0.1.99",
     "sequelize": "^6.37.8",
     "tedious": "^19.2.1"
   },

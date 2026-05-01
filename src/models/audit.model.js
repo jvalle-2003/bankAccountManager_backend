@@ -42,7 +42,7 @@ const Audit = sequelize.define("Audit", {
       allowNull: true 
     },
     record_id: { 
-      type: DataTypes.INTEGER, 
+      type: DataTypes.STRING(50), 
       allowNull: true 
     },
 }, 

@@ -4,6 +4,8 @@ const { sendEmail } = require('../utils/emailService');
 const sequelize = require("../config/db");
 const { runWithAudit } = require("../utils/audit.helper");
 
+// NUEVO: Importamos la utilidad de reportes
+const { generateReport } = require("../utils/report.generator");
 
 /* =========================
    CREAR USUARIO (CRUD normal)
@@ -151,5 +153,42 @@ exports.confirm = async (req, res) => {
     
   } catch (error) {
     res.status(400).json({ message: 'Token inválido o expirado' });
+  }
+};
+
+/* =========================
+   EXPORTAR REPORTE (NUEVO)
+========================= */
+exports.exportReport = async (req, res) => {
+  try {
+    const format = req.query.format || "excel";
+    const users = await User.findAll();
+
+    // 1. Configuramos cómo se verá en Excel
+    const excelConfig = {
+      columns: [
+        { header: "Usuario", key: "username", width: 20 },
+        { header: "Email", key: "email", width: 35 },
+        { header: "Estado", key: "status", width: 15 },
+      ],
+      data: users.map(u => ({
+        username: u.username,
+        email: u.email,
+        status: u.active ? "ACTIVO" : "INACTIVO"
+      }))
+    };
+
+    // 2. Configuramos cómo se verá en PDF
+    const pdfConfig = {
+      title: "Reporte de Usuarios",
+      headers: ["Usuario", "Email", "Estado"],
+      rows: users.map(u => [u.username, u.email, u.active ? "Activo" : "Inactivo"])
+    };
+
+    // 3. Llamamos a la función genérica
+    await generateReport(res, format, "Usuarios", excelConfig, pdfConfig);
+
+  } catch (error) {
+    res.status(500).json({ message: "Error", error: error.message });
   }
 };
