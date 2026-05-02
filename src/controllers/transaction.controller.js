@@ -50,7 +50,15 @@ exports.findAll = async (req, res) => {
       order: [["transaction_id", "DESC"]]
     });
 
-    res.json(data);
+    const cleanedData = data.map(t => {
+        const item = t.toJSON();
+        if(item.transaction_date) {
+            item.transaction_date = item.transaction_date.split('T')[0];
+        }
+        return item;
+    });
+
+    res.json(cleanedData);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
