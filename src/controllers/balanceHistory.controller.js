@@ -1,5 +1,6 @@
 const sequelize = require("../config/db");
 const BalanceHistory = require("../models/balance_history.model");
+const { runWithAudit } = require("../utils/audit.helper");
 
 exports.create = async (req, res) => {
   try {

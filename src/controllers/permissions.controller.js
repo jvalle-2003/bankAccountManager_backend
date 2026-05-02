@@ -1,4 +1,5 @@
 const Permissions = require("../models/permissions.model");
+const { runWithAudit } = require("../utils/audit.helper");
 /* =========================
    CREAR PERMISO
 ========================= */

@@ -1,5 +1,5 @@
 const Role = require("../models/role.model");
-const { runWithAudit } = require("../utils/audit.helper"); // <--- Importamos el helper
+const { runWithAudit } = require("../utils/audit.helper"); 
 
 /* =========================
    CREAR ROLE
