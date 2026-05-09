@@ -1,6 +1,7 @@
 const Category = require('../models/category.model'); // Ajusta la ruta al archivo real
 const Transaction = require('../models/transaction.model'); 
 const Bank_Account = require('../models/bankAccount.model'); 
+const { runWithAudit } = require("../utils/audit.helper");
 const sequelize = require('../config/db'); 
 
 exports.create = async (req, res) => {
