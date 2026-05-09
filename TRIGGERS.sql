@@ -1,5 +1,11 @@
+-- =====================================================
+-- TRIGGERS CORREGIDOS - GESBANCA
+-- FECHA: 09/05/2026
+-- =====================================================
 
---ACCOUNT_TYPES AUDITORIA
+-- =====================================================
+-- 1. ACCOUNT_TYPES AUDITORIA
+-- =====================================================
 DROP TRIGGER IF EXISTS TR_Account_Types_Audit;
 GO
 
@@ -10,11 +16,11 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Extraemos el usuario y la IP de la conexión temporal (inyectada por Node)
     DECLARE @usuario_responsable INT = CAST(SESSION_CONTEXT(N'user_id') AS INT);
     DECLARE @ip_responsable VARCHAR(45) = CAST(SESSION_CONTEXT(N'user_ip') AS VARCHAR(45));
     
-    IF @usuario_responsable IS NULL SET @usuario_responsable = 1;
+    IF @usuario_responsable IS NULL OR NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @usuario_responsable)
+        SET @usuario_responsable = NULL;
 
     DECLARE @accion VARCHAR(250);
     DECLARE @record_id INT;
@@ -43,19 +49,15 @@ BEGIN
 
     IF @accion IS NOT NULL
     BEGIN
-        INSERT INTO Audits (
-            description, previous_values, new_values, user_id, 
-            last_ip, table_name, record_id, last_activity
-        )
-        VALUES (
-            @accion, @json_anterior, @json_nuevo, @usuario_responsable, 
-            @ip_responsable, 'Account_Types', @record_id, GETDATE()
-        );
+        INSERT INTO Audits (description, previous_values, new_values, user_id, last_ip, table_name, record_id, last_activity)
+        VALUES (@accion, @json_anterior, @json_nuevo, @usuario_responsable, @ip_responsable, 'Account_Types', @record_id, GETDATE());
     END
 END;
 GO
 
---BALANCE_HISTORY AUDITORIA
+-- =====================================================
+-- 2. BALANCE_HISTORY AUDITORIA
+-- =====================================================
 DROP TRIGGER IF EXISTS TR_Balance_History_Audit;
 GO
 
@@ -66,14 +68,13 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Extraemos el usuario y la IP de la conexión temporal (inyectada por Node)
     DECLARE @usuario_responsable INT = CAST(SESSION_CONTEXT(N'user_id') AS INT);
     DECLARE @ip_responsable VARCHAR(45) = CAST(SESSION_CONTEXT(N'user_ip') AS VARCHAR(45));
     
-    IF @usuario_responsable IS NULL SET @usuario_responsable = 1;
+    IF @usuario_responsable IS NULL OR NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @usuario_responsable)
+        SET @usuario_responsable = NULL;
 
     DECLARE @accion VARCHAR(250);
-    -- Se usa BIGINT porque tu llave primaria 'history_id' es DataTypes.BIGINT
     DECLARE @record_id BIGINT; 
     DECLARE @json_anterior NVARCHAR(MAX) = NULL;
     DECLARE @json_nuevo NVARCHAR(MAX) = NULL;
@@ -100,20 +101,15 @@ BEGIN
 
     IF @accion IS NOT NULL
     BEGIN
-        INSERT INTO Audits (
-            description, previous_values, new_values, user_id, 
-            last_ip, table_name, record_id, last_activity
-        )
-        VALUES (
-            @accion, @json_anterior, @json_nuevo, @usuario_responsable, 
-            @ip_responsable, 'Balance_History', @record_id, GETDATE()
-        );
+        INSERT INTO Audits (description, previous_values, new_values, user_id, last_ip, table_name, record_id, last_activity)
+        VALUES (@accion, @json_anterior, @json_nuevo, @usuario_responsable, @ip_responsable, 'Balance_History', @record_id, GETDATE());
     END
 END;
 GO
 
-
---BANKS_ACCOUNTS AUDITORIA
+-- =====================================================
+-- 3. BANK_ACCOUNTS AUDITORIA
+-- =====================================================
 DROP TRIGGER IF EXISTS TR_Bank_Accounts_Audit;
 GO
 
@@ -124,11 +120,11 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Extraemos el usuario y la IP de la conexión temporal (inyectada por Node)
     DECLARE @usuario_responsable INT = CAST(SESSION_CONTEXT(N'user_id') AS INT);
     DECLARE @ip_responsable VARCHAR(45) = CAST(SESSION_CONTEXT(N'user_ip') AS VARCHAR(45));
     
-    IF @usuario_responsable IS NULL SET @usuario_responsable = 1;
+    IF @usuario_responsable IS NULL OR NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @usuario_responsable)
+        SET @usuario_responsable = NULL;
 
     DECLARE @accion VARCHAR(250);
     DECLARE @record_id INT;
@@ -157,19 +153,15 @@ BEGIN
 
     IF @accion IS NOT NULL
     BEGIN
-        INSERT INTO Audits (
-            description, previous_values, new_values, user_id, 
-            last_ip, table_name, record_id, last_activity
-        )
-        VALUES (
-            @accion, @json_anterior, @json_nuevo, @usuario_responsable, 
-            @ip_responsable, 'Bank_Accounts', @record_id, GETDATE()
-        );
+        INSERT INTO Audits (description, previous_values, new_values, user_id, last_ip, table_name, record_id, last_activity)
+        VALUES (@accion, @json_anterior, @json_nuevo, @usuario_responsable, @ip_responsable, 'Bank_Accounts', @record_id, GETDATE());
     END
 END;
 GO
 
---BANKS AUDITORIA
+-- =====================================================
+-- 4. BANKS AUDITORIA
+-- =====================================================
 DROP TRIGGER IF EXISTS TR_Banks_Audit;
 GO
 
@@ -180,11 +172,11 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Extraemos el usuario y la IP de la conexión temporal (inyectada por Node)
     DECLARE @usuario_responsable INT = CAST(SESSION_CONTEXT(N'user_id') AS INT);
     DECLARE @ip_responsable VARCHAR(45) = CAST(SESSION_CONTEXT(N'user_ip') AS VARCHAR(45));
     
-    IF @usuario_responsable IS NULL SET @usuario_responsable = 1;
+    IF @usuario_responsable IS NULL OR NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @usuario_responsable)
+        SET @usuario_responsable = NULL;
 
     DECLARE @accion VARCHAR(250);
     DECLARE @record_id INT;
@@ -213,19 +205,15 @@ BEGIN
 
     IF @accion IS NOT NULL
     BEGIN
-        INSERT INTO Audits (
-            description, previous_values, new_values, user_id, 
-            last_ip, table_name, record_id, last_activity
-        )
-        VALUES (
-            @accion, @json_anterior, @json_nuevo, @usuario_responsable, 
-            @ip_responsable, 'Banks', @record_id, GETDATE()
-        );
+        INSERT INTO Audits (description, previous_values, new_values, user_id, last_ip, table_name, record_id, last_activity)
+        VALUES (@accion, @json_anterior, @json_nuevo, @usuario_responsable, @ip_responsable, 'Banks', @record_id, GETDATE());
     END
 END;
 GO
 
---CATEGORIES AUDITORIA
+-- =====================================================
+-- 5. CATEGORIES AUDITORIA
+-- =====================================================
 DROP TRIGGER IF EXISTS TR_Categories_Audit;
 GO
 
@@ -236,11 +224,11 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Extraemos el usuario y la IP de la conexión temporal (inyectada por Node)
     DECLARE @usuario_responsable INT = CAST(SESSION_CONTEXT(N'user_id') AS INT);
     DECLARE @ip_responsable VARCHAR(45) = CAST(SESSION_CONTEXT(N'user_ip') AS VARCHAR(45));
     
-    IF @usuario_responsable IS NULL SET @usuario_responsable = 1;
+    IF @usuario_responsable IS NULL OR NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @usuario_responsable)
+        SET @usuario_responsable = NULL;
 
     DECLARE @accion VARCHAR(250);
     DECLARE @record_id INT;
@@ -269,77 +257,67 @@ BEGIN
 
     IF @accion IS NOT NULL
     BEGIN
-        INSERT INTO Audits (
-            description, previous_values, new_values, user_id, 
-            last_ip, table_name, record_id, last_activity
-        )
-        VALUES (
-            @accion, @json_anterior, @json_nuevo, @usuario_responsable, 
-            @ip_responsable, 'Categories', @record_id, GETDATE()
-        );
+        INSERT INTO Audits (description, previous_values, new_values, user_id, last_ip, table_name, record_id, last_activity)
+        VALUES (@accion, @json_anterior, @json_nuevo, @usuario_responsable, @ip_responsable, 'Categories', @record_id, GETDATE());
     END
 END;
 GO
 
-
---CURRENCIES AUDITORIA
-DROP TRIGGER IF EXISTS TR_Banks_Audit;
+-- =====================================================
+-- 6. CURRENCIES AUDITORIA (CORREGIDO - nombre Ãºnico)
+-- =====================================================
+DROP TRIGGER IF EXISTS TR_Currencies_Audit;
 GO
 
-CREATE TRIGGER TR_Banks_Audit
-ON Banks
+CREATE TRIGGER TR_Currencies_Audit
+ON Currencies
 AFTER INSERT, UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Extraemos el usuario y la IP de la conexión temporal (inyectada por Node)
     DECLARE @usuario_responsable INT = CAST(SESSION_CONTEXT(N'user_id') AS INT);
     DECLARE @ip_responsable VARCHAR(45) = CAST(SESSION_CONTEXT(N'user_ip') AS VARCHAR(45));
     
-    IF @usuario_responsable IS NULL SET @usuario_responsable = 1;
+    IF @usuario_responsable IS NULL OR NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @usuario_responsable)
+        SET @usuario_responsable = NULL;
 
     DECLARE @accion VARCHAR(250);
-    DECLARE @record_id INT;
+    DECLARE @record_id VARCHAR(3);
     DECLARE @json_anterior NVARCHAR(MAX) = NULL;
     DECLARE @json_nuevo NVARCHAR(MAX) = NULL;
 
     IF EXISTS (SELECT * FROM inserted) AND EXISTS (SELECT * FROM deleted)
     BEGIN
-        SET @accion = 'UPDATE en Banks';
-        SET @record_id = (SELECT TOP 1 bank_id FROM inserted); 
+        SET @accion = 'UPDATE en Currencies';
+        SET @record_id = (SELECT TOP 1 id_currency FROM inserted); 
         SET @json_anterior = (SELECT * FROM deleted FOR JSON AUTO, WITHOUT_ARRAY_WRAPPER);
         SET @json_nuevo = (SELECT * FROM inserted FOR JSON AUTO, WITHOUT_ARRAY_WRAPPER);
     END
     ELSE IF EXISTS (SELECT * FROM inserted)
     BEGIN
-        SET @accion = 'INSERT en Banks';
-        SET @record_id = (SELECT TOP 1 bank_id FROM inserted);
+        SET @accion = 'INSERT en Currencies';
+        SET @record_id = (SELECT TOP 1 id_currency FROM inserted);
         SET @json_nuevo = (SELECT * FROM inserted FOR JSON AUTO, WITHOUT_ARRAY_WRAPPER);
     END
     ELSE IF EXISTS (SELECT * FROM deleted)
     BEGIN
-        SET @accion = 'DELETE en Banks';
-        SET @record_id = (SELECT TOP 1 bank_id FROM deleted);
+        SET @accion = 'DELETE en Currencies';
+        SET @record_id = (SELECT TOP 1 id_currency FROM deleted);
         SET @json_anterior = (SELECT * FROM deleted FOR JSON AUTO, WITHOUT_ARRAY_WRAPPER);
     END
 
     IF @accion IS NOT NULL
     BEGIN
-        INSERT INTO Audits (
-            description, previous_values, new_values, user_id, 
-            last_ip, table_name, record_id, last_activity
-        )
-        VALUES (
-            @accion, @json_anterior, @json_nuevo, @usuario_responsable, 
-            @ip_responsable, 'Banks', @record_id, GETDATE()
-        );
+        INSERT INTO Audits (description, previous_values, new_values, user_id, last_ip, table_name, record_id, last_activity)
+        VALUES (@accion, @json_anterior, @json_nuevo, @usuario_responsable, @ip_responsable, 'Currencies', @record_id, GETDATE());
     END
 END;
 GO
 
-
---PERIODS AUDITORIA
+-- =====================================================
+-- 7. PERIODS AUDITORIA
+-- =====================================================
 DROP TRIGGER IF EXISTS TR_Periods_Audit;
 GO
 
@@ -350,11 +328,11 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Extraemos el usuario y la IP de la conexión temporal (inyectada por Node)
     DECLARE @usuario_responsable INT = CAST(SESSION_CONTEXT(N'user_id') AS INT);
     DECLARE @ip_responsable VARCHAR(45) = CAST(SESSION_CONTEXT(N'user_ip') AS VARCHAR(45));
     
-    IF @usuario_responsable IS NULL SET @usuario_responsable = 1;
+    IF @usuario_responsable IS NULL OR NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @usuario_responsable)
+        SET @usuario_responsable = NULL;
 
     DECLARE @accion VARCHAR(250);
     DECLARE @record_id INT;
@@ -383,19 +361,15 @@ BEGIN
 
     IF @accion IS NOT NULL
     BEGIN
-        INSERT INTO Audits (
-            description, previous_values, new_values, user_id, 
-            last_ip, table_name, record_id, last_activity
-        )
-        VALUES (
-            @accion, @json_anterior, @json_nuevo, @usuario_responsable, 
-            @ip_responsable, 'Periods', @record_id, GETDATE()
-        );
+        INSERT INTO Audits (description, previous_values, new_values, user_id, last_ip, table_name, record_id, last_activity)
+        VALUES (@accion, @json_anterior, @json_nuevo, @usuario_responsable, @ip_responsable, 'Periods', @record_id, GETDATE());
     END
 END;
 GO
 
---PERMISSION AUDITORIA
+-- =====================================================
+-- 8. PERMISSIONS AUDITORIA
+-- =====================================================
 DROP TRIGGER IF EXISTS TR_Permissions_Audit;
 GO
 
@@ -406,11 +380,11 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Extraemos el usuario y la IP de la conexión temporal (inyectada por Node)
     DECLARE @usuario_responsable INT = CAST(SESSION_CONTEXT(N'user_id') AS INT);
     DECLARE @ip_responsable VARCHAR(45) = CAST(SESSION_CONTEXT(N'user_ip') AS VARCHAR(45));
     
-    IF @usuario_responsable IS NULL SET @usuario_responsable = 1;
+    IF @usuario_responsable IS NULL OR NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @usuario_responsable)
+        SET @usuario_responsable = NULL;
 
     DECLARE @accion VARCHAR(250);
     DECLARE @record_id INT;
@@ -439,19 +413,15 @@ BEGIN
 
     IF @accion IS NOT NULL
     BEGIN
-        INSERT INTO Audits (
-            description, previous_values, new_values, user_id, 
-            last_ip, table_name, record_id, last_activity
-        )
-        VALUES (
-            @accion, @json_anterior, @json_nuevo, @usuario_responsable, 
-            @ip_responsable, 'Permissions', @record_id, GETDATE()
-        );
+        INSERT INTO Audits (description, previous_values, new_values, user_id, last_ip, table_name, record_id, last_activity)
+        VALUES (@accion, @json_anterior, @json_nuevo, @usuario_responsable, @ip_responsable, 'Permissions', @record_id, GETDATE());
     END
 END;
 GO
 
---RECONCILIATIONS AUDITORIA
+-- =====================================================
+-- 9. RECONCILIATIONS AUDITORIA
+-- =====================================================
 DROP TRIGGER IF EXISTS TR_Reconciliations_Audit;
 GO
 
@@ -462,11 +432,11 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Extraemos el usuario y la IP de la conexión temporal (inyectada por Node)
     DECLARE @usuario_responsable INT = CAST(SESSION_CONTEXT(N'user_id') AS INT);
     DECLARE @ip_responsable VARCHAR(45) = CAST(SESSION_CONTEXT(N'user_ip') AS VARCHAR(45));
     
-    IF @usuario_responsable IS NULL SET @usuario_responsable = 1;
+    IF @usuario_responsable IS NULL OR NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @usuario_responsable)
+        SET @usuario_responsable = NULL;
 
     DECLARE @accion VARCHAR(250);
     DECLARE @record_id INT;
@@ -495,19 +465,15 @@ BEGIN
 
     IF @accion IS NOT NULL
     BEGIN
-        INSERT INTO Audits (
-            description, previous_values, new_values, user_id, 
-            last_ip, table_name, record_id, last_activity
-        )
-        VALUES (
-            @accion, @json_anterior, @json_nuevo, @usuario_responsable, 
-            @ip_responsable, 'Reconciliations', @record_id, GETDATE()
-        );
+        INSERT INTO Audits (description, previous_values, new_values, user_id, last_ip, table_name, record_id, last_activity)
+        VALUES (@accion, @json_anterior, @json_nuevo, @usuario_responsable, @ip_responsable, 'Reconciliations', @record_id, GETDATE());
     END
 END;
 GO
 
---ROLES AUDITORIA
+-- =====================================================
+-- 10. ROLES AUDITORIA
+-- =====================================================
 DROP TRIGGER IF EXISTS TR_Roles_Audit;
 GO
 
@@ -518,11 +484,11 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Extraemos el usuario y la IP de la conexión temporal (inyectada por Node)
     DECLARE @usuario_responsable INT = CAST(SESSION_CONTEXT(N'user_id') AS INT);
     DECLARE @ip_responsable VARCHAR(45) = CAST(SESSION_CONTEXT(N'user_ip') AS VARCHAR(45));
     
-    IF @usuario_responsable IS NULL SET @usuario_responsable = 1;
+    IF @usuario_responsable IS NULL OR NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @usuario_responsable)
+        SET @usuario_responsable = NULL;
 
     DECLARE @accion VARCHAR(250);
     DECLARE @record_id INT;
@@ -551,19 +517,15 @@ BEGIN
 
     IF @accion IS NOT NULL
     BEGIN
-        INSERT INTO Audits (
-            description, previous_values, new_values, user_id, 
-            last_ip, table_name, record_id, last_activity
-        )
-        VALUES (
-            @accion, @json_anterior, @json_nuevo, @usuario_responsable, 
-            @ip_responsable, 'Roles', @record_id, GETDATE()
-        );
+        INSERT INTO Audits (description, previous_values, new_values, user_id, last_ip, table_name, record_id, last_activity)
+        VALUES (@accion, @json_anterior, @json_nuevo, @usuario_responsable, @ip_responsable, 'Roles', @record_id, GETDATE());
     END
 END;
 GO
 
---TRANSACTIONS AUDITORIA
+-- =====================================================
+-- 11. TRANSACTIONS AUDITORIA
+-- =====================================================
 DROP TRIGGER IF EXISTS TR_Transactions_Audit;
 GO
 
@@ -574,14 +536,13 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Extraemos el usuario y la IP de la conexión temporal (inyectada por Node)
     DECLARE @usuario_responsable INT = CAST(SESSION_CONTEXT(N'user_id') AS INT);
     DECLARE @ip_responsable VARCHAR(45) = CAST(SESSION_CONTEXT(N'user_ip') AS VARCHAR(45));
     
-    IF @usuario_responsable IS NULL SET @usuario_responsable = 1;
+    IF @usuario_responsable IS NULL OR NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @usuario_responsable)
+        SET @usuario_responsable = NULL;
 
     DECLARE @accion VARCHAR(250);
-    -- Se usa BIGINT porque tu llave primaria 'transaction_id' es DataTypes.BIGINT
     DECLARE @record_id BIGINT; 
     DECLARE @json_anterior NVARCHAR(MAX) = NULL;
     DECLARE @json_nuevo NVARCHAR(MAX) = NULL;
@@ -608,49 +569,39 @@ BEGIN
 
     IF @accion IS NOT NULL
     BEGIN
-        INSERT INTO Audits (
-            description, previous_values, new_values, user_id, 
-            last_ip, table_name, record_id, last_activity
-        )
-        VALUES (
-            @accion, @json_anterior, @json_nuevo, @usuario_responsable, 
-            @ip_responsable, 'Transactions', @record_id, GETDATE()
-        );
+        INSERT INTO Audits (description, previous_values, new_values, user_id, last_ip, table_name, record_id, last_activity)
+        VALUES (@accion, @json_anterior, @json_nuevo, @usuario_responsable, @ip_responsable, 'Transactions', @record_id, GETDATE());
     END
 END;
 GO
 
--- USERS AUDITORIA 
-DROP TRIGGER 
-IF EXISTS TR_Users_Audit;
+-- =====================================================
+-- 12. USERS AUDITORIA
+-- =====================================================
+DROP TRIGGER IF EXISTS TR_Users_Audit;
 GO
 
-CREATE OR ALTER TRIGGER TR_Users_Audit
-ON Users -- Reemplaza con el nombre real de tu tabla de usuarios si es diferente
+CREATE TRIGGER TR_Users_Audit
+ON Users
 AFTER INSERT, UPDATE, DELETE
 AS
 BEGIN
-    -- Evita mensajes extra que puedan confundir a Node.js
     SET NOCOUNT ON;
 
-    -- 1. Recuperamos quién hizo el cambio desde el Backend (tu helper)
     DECLARE @usuario_responsable INT = CAST(SESSION_CONTEXT(N'user_id') AS INT);
     DECLARE @ip_responsable VARCHAR(45) = CAST(SESSION_CONTEXT(N'user_ip') AS VARCHAR(45));
     
-    -- Si por alguna razón no viene el ID (ej. registro público), usamos el ID 1 por defecto
-    IF @usuario_responsable IS NULL SET @usuario_responsable = 1;
+    IF @usuario_responsable IS NULL OR NOT EXISTS (SELECT 1 FROM Users WHERE user_id = @usuario_responsable)
+        SET @usuario_responsable = NULL;
 
-    -- Variables para guardar lo que pasó
     DECLARE @accion VARCHAR(250);
     DECLARE @record_id INT;
     DECLARE @json_anterior NVARCHAR(MAX) = NULL;
     DECLARE @json_nuevo NVARCHAR(MAX) = NULL;
 
-    -- 2. Detectamos qué tipo de movimiento fue
     IF EXISTS (SELECT * FROM inserted) AND EXISTS (SELECT * FROM deleted)
     BEGIN
         SET @accion = 'UPDATE en Usuarios';
-        -- Sacamos el ID del usuario modificado (Asumiendo que tu PK se llama user_id)
         SET @record_id = (SELECT TOP 1 user_id FROM inserted); 
         SET @json_anterior = (SELECT * FROM deleted FOR JSON AUTO, WITHOUT_ARRAY_WRAPPER);
         SET @json_nuevo = (SELECT * FROM inserted FOR JSON AUTO, WITHOUT_ARRAY_WRAPPER);
@@ -668,29 +619,11 @@ BEGIN
         SET @json_anterior = (SELECT * FROM deleted FOR JSON AUTO, WITHOUT_ARRAY_WRAPPER);
     END
 
-    -- 3. Finalmente, insertamos todo en tu tabla de Auditoría
     IF @accion IS NOT NULL
     BEGIN
-        INSERT INTO Audits (
-            description, 
-            previous_values, 
-            new_values, 
-            user_id, 
-            last_ip, 
-            table_name, 
-            record_id,
-			last_activity
-        )
-        VALUES (
-            @accion, 
-            @json_anterior, 
-            @json_nuevo, 
-            @usuario_responsable, 
-            @ip_responsable, 
-            'Users',   -- Aquí mandamos 'Users' en duro porque este trigger es de la tabla Users
-            @record_id, -- El ID exacto de la fila modificada
-			GETDATE()
-        );
+        INSERT INTO Audits (description, previous_values, new_values, user_id, last_ip, table_name, record_id, last_activity)
+        VALUES (@accion, @json_anterior, @json_nuevo, @usuario_responsable, @ip_responsable, 'Users', @record_id, GETDATE());
     END
 END;
-GO -- Separar por bloques para ejecutar todos los triggers
+GO
+
