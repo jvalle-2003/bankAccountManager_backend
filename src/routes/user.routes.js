@@ -2,15 +2,18 @@ const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/user.controller");
 
-router.post("/", controller.create);          
-router.get("/", controller.findAll);            
+const { verifyToken } = require("../middlewares/auth.middleware");
 
-// NUEVA RUTA PARA EXPORTAR (Debe ir antes de /:id)
-router.get("/report/export", controller.exportReport);
 
-router.get("/:id", controller.findOne);        
-router.put("/:id", controller.update);          
-router.delete("/:id", controller.delete);       
+router.post("/", verifyToken, controller.create);          
+router.get("/", verifyToken, controller.findAll);            
+
+router.get("/report/export", verifyToken, controller.exportReport);
+
+router.get("/:id", verifyToken, controller.findOne);        
+router.put("/:id", verifyToken, controller.update); // <-- ¡Esta es la que fallaba en tu frontend!      
+router.delete("/:id", verifyToken, controller.delete);       
+
 
 router.post("/register", controller.register);  
 router.post("/confirm", controller.confirm);    
