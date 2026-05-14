@@ -39,6 +39,7 @@ app.use("/api/account-types", accountTypeRoutes);
 app.use("/api/bank-accounts", bankAccountRoutes);
 app.use('/api/statements', require('./routes/statements'));
 
+
 app.use("/api/auth", require("./routes/auth.routes"));
 
 app.use("/api/dashboard", dashboardRoutes);
