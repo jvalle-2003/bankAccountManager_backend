@@ -70,7 +70,32 @@ exports.getMonthlyStatement = async (req, res) => {
         console.log('year:', year);
         console.log('month:', month);
         
-        // ✅ Calcular fechas correctamente
+        // ✅ 1. BUSCAR EL CIERRE DE MES EN Balance_History
+        const closing = await BalanceHistory.findOne({
+            where: {
+                account_id: parseInt(account_id),
+                year: parseInt(year),
+                month: parseInt(month),
+                is_monthly_closing: true
+            }
+        });
+        
+        if (!closing) {
+            console.log('❌ No existe cierre para este período');
+            return res.status(404).json({
+                success: false,
+                message: `No existe cierre para ${year}/${month} de la cuenta ${account_id}. Ejecute el cierre primero.`
+            });
+        }
+        
+        console.log('✅ Cierre encontrado:');
+        console.log('   - previous_balance:', closing.previous_balance);
+        console.log('   - closing_balance:', closing.closing_balance);
+        console.log('   - monthly_credits:', closing.monthly_credits);
+        console.log('   - monthly_debits:', closing.monthly_debits);
+        console.log('   - transaction_count:', closing.transaction_count);
+        
+        // ✅ 2. Calcular fechas correctamente
         const startDate = `${year}-${String(month).padStart(2, '0')}-01 00:00:00`;
         
         // Último día del mes
@@ -80,7 +105,7 @@ exports.getMonthlyStatement = async (req, res) => {
         console.log('startDate:', startDate);
         console.log('endDate:', endDate);
         
-        // ✅ Consulta CORREGIDA - Filtrar por fechas correctamente
+        // ✅ 3. Obtener transacciones del mes (solo para el detalle)
         const transactions = await sequelize.query(
             `SELECT 
                 t.transaction_id,
@@ -95,7 +120,7 @@ exports.getMonthlyStatement = async (req, res) => {
             FROM Transactions t
             LEFT JOIN Categories c ON t.category_id = c.category_id
             WHERE t.account_id = :account_id
-                AND t.cancelled = 0
+                AND (t.cancelled = 0 OR t.cancelled IS NULL)
                 AND t.transaction_date >= :startDate
                 AND t.transaction_date <= :endDate
             ORDER BY t.transaction_date ASC`,
@@ -109,58 +134,21 @@ exports.getMonthlyStatement = async (req, res) => {
             }
         );
         
-        console.log(`✅ Transacciones encontradas para cuenta ${account_id} en ${year}/${month}:`, transactions.length);
+        console.log(`✅ Transacciones encontradas:`, transactions.length);
         
-        // Mostrar primeras transacciones para debug
-        if (transactions.length > 0) {
-            console.log('Primera transacción:', transactions[0]);
-        }
+        // ✅ 4. USAR LOS VALORES DEL CIERRE, NO RECALCULAR
+        const openingBalance = parseFloat(closing.previous_balance) || 0;
+        const totalCredits = parseFloat(closing.monthly_credits) || 0;
+        const totalDebits = parseFloat(closing.monthly_debits) || 0;
+        const closingBalance = parseFloat(closing.closing_balance) || 0;
+        const transactionCount = closing.transaction_count || transactions.length;
         
-        // Calcular saldo inicial (todas las transacciones ANTES de este mes)
-        const previousTransactions = await sequelize.query(
-            `SELECT 
-                SUM(CASE WHEN c.movement_type = 'INGRESO' THEN t.amount ELSE -t.amount END) as total
-            FROM Transactions t
-            LEFT JOIN Categories c ON t.category_id = c.category_id
-            WHERE t.account_id = :account_id
-                AND t.cancelled = 0
-                AND t.transaction_date < :startDate`,
-            {
-                replacements: {
-                    account_id: parseInt(account_id),
-                    startDate: startDate
-                },
-                type: sequelize.QueryTypes.SELECT
-            }
-        );
-        
-        const openingBalance = parseFloat(previousTransactions[0]?.total || 0);
-        console.log('Saldo inicial (meses anteriores):', openingBalance);
-        
-        // Calcular totales del mes
-        let totalCredits = 0;
-        let totalDebits = 0;
-        
-        for (const t of transactions) {
-            const isCredit = t.movement_type?.toUpperCase() === 'INGRESO';
-            const amount = parseFloat(t.amount) || 0;
-            
-            if (isCredit) {
-                totalCredits += amount;
-                console.log(`Crédito: ${amount}, Total créditos: ${totalCredits}`);
-            } else {
-                totalDebits += amount;
-                console.log(`Débito: ${amount}, Total débitos: ${totalDebits}`);
-            }
-        }
-        
-        const closingBalance = openingBalance + totalCredits - totalDebits;
-        
-        console.log('=== RESUMEN FINAL ===');
-        console.log('Total transacciones:', transactions.length);
-        console.log('Total créditos:', totalCredits);
-        console.log('Total débitos:', totalDebits);
-        console.log('Saldo cierre:', closingBalance);
+        console.log('=== VALORES DEL CIERRE ===');
+        console.log('opening_balance (de Balance_History):', openingBalance);
+        console.log('total_credits:', totalCredits);
+        console.log('total_debits:', totalDebits);
+        console.log('closing_balance:', closingBalance);
+        console.log('transaction_count:', transactionCount);
         
         res.json({
             success: true,
@@ -169,15 +157,15 @@ exports.getMonthlyStatement = async (req, res) => {
                 period: {
                     year: parseInt(year),
                     month: parseInt(month),
-                    start_date: startDate,
-                    end_date: endDate
+                    start_date: startDate.split(' ')[0],
+                    end_date: endDate.split(' ')[0]
                 },
                 opening_balance: openingBalance,
                 closing_balance: closingBalance,
                 summary: {
                     total_credits: totalCredits,
                     total_debits: totalDebits,
-                    transaction_count: transactions.length
+                    transaction_count: transactionCount
                 },
                 transactions: transactions
             }
@@ -239,9 +227,6 @@ exports.getBalanceByDate = async (req, res) => {
   }
 };
 
-// ============================================
-// 🆕 NUEVAS FUNCIONES PARA CIERRE DE MES
-// ============================================
 
 /**
  * Calcular y guardar cierre de mes para una cuenta específica
