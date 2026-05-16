@@ -2,18 +2,21 @@ const sequelize = require("../config/db");
 const BalanceHistory = require("../models/balance_history.model");
 const { runWithAudit } = require("../utils/audit.helper");
 
-// ============================================
-// CRUD BÁSICO (ya lo tienes)
-// ============================================
+
 exports.create = async (req, res) => {
   try {
-    const record = await BalanceHistory.create(req.body);
-    res.status(201).json(record);
+    await runWithAudit(req, async (t) => {
+      const record = await BalanceHistory.create(req.body, { transaction: t });
+      res.status(201).json(record);
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+/* =========================
+   OBTENER TODOS
+========================= */
 exports.findAll = async (req, res) => {
   try {
     const records = await BalanceHistory.findAll();
@@ -23,6 +26,9 @@ exports.findAll = async (req, res) => {
   }
 };
 
+/* =========================
+   OBTENER POR ID
+========================= */
 exports.findOne = async (req, res) => {
   try {
     const record = await BalanceHistory.findByPk(req.params.id);
@@ -33,23 +39,41 @@ exports.findOne = async (req, res) => {
   }
 };
 
+/* =========================
+   ACTUALIZAR
+========================= */
 exports.update = async (req, res) => {
   try {
-    const record = await BalanceHistory.findByPk(req.params.id);
-    if (!record) return res.status(404).json({ message: "Record not found" });
-    await record.update(req.body);
-    res.json(record);
+    await runWithAudit(req, async (t) => {
+      const record = await BalanceHistory.findByPk(req.params.id);
+      
+      if (!record) return res.status(404).json({ message: "Record not found" });
+      
+      // Pasamos la transacción para que el cambio quede registrado
+      await record.update(req.body, { transaction: t });
+      
+      res.json(record);
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+/* =========================
+   ELIMINAR
+========================= */
 exports.delete = async (req, res) => {
   try {
-    const record = await BalanceHistory.findByPk(req.params.id);
-    if (!record) return res.status(404).json({ message: "Record not found" });
-    await record.destroy();
-    res.json({ message: "Record deleted successfully" });
+    await runWithAudit(req, async (t) => {
+      const record = await BalanceHistory.findByPk(req.params.id);
+      
+      if (!record) return res.status(404).json({ message: "Record not found" });
+      
+      // Pasamos la transacción a la destrucción del registro
+      await record.destroy({ transaction: t });
+      
+      res.json({ message: "Record deleted successfully" });
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -1,19 +1,17 @@
 const Category = require("../models/category.model");
 const { runWithAudit } = require("../utils/audit.helper");
 
-
-
 /* =========================
    CREATE
 ========================= */
 exports.create = async (req, res) => {
   try {
-    const category = await Category.create(req.body);
-    res.json(category);
-  } catch (error) {
-    res.status(500).json({
-      message: error.message
+    await runWithAudit(req, async (t) => {
+      const category = await Category.create(req.body, { transaction: t });
+      res.json(category);
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -25,9 +23,7 @@ exports.findAll = async (req, res) => {
     const categories = await Category.findAll();
     res.json(categories);
   } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -37,18 +33,10 @@ exports.findAll = async (req, res) => {
 exports.findOne = async (req, res) => {
   try {
     const category = await Category.findByPk(req.params.id);
-
-    if (!category) {
-      return res.status(404).json({
-        message: "Category not found"
-      });
-    }
-
+    if (!category) return res.status(404).json({ message: "Category not found" });
     res.json(category);
   } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -57,50 +45,47 @@ exports.findOne = async (req, res) => {
 ========================= */
 exports.update = async (req, res) => {
   try {
-    const category = await Category.findByPk(req.params.id);
+    await runWithAudit(req, async (t) => {
+      const category = await Category.findByPk(req.params.id);
 
-    if (!category) {
-      return res.status(404).json({
-        message: "Category not found"
-      });
-    }
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
 
-    await category.update(req.body);
+      // Añadimos la transacción para registrar los cambios en los campos
+      await category.update(req.body, { transaction: t });
 
-    res.json(category);
-  } catch (error) {
-    res.status(500).json({
-      message: error.message
+      res.json(category);
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
 /* =========================
-   TOGGLE ACTIVE
+   TOGGLE ACTIVE (Auditable)
 ========================= */
 exports.toggleActive = async (req, res) => {
   try {
-    const category = await Category.findByPk(req.params.id);
+    await runWithAudit(req, async (t) => {
+      const category = await Category.findByPk(req.params.id);
 
-    if (!category) {
-      return res.status(404).json({
-        message: "Category not found"
-      });
-    }
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
 
-    const currentState = Boolean(category.active);
+      const currentState = Boolean(category.active);
 
-    await category.update({
-      active: !currentState
+      // El cambio de estado también se audita al pasar la transacción 't'
+      await category.update({
+        active: !currentState
+      }, { transaction: t });
+
+      await category.reload({ transaction: t });
+
+      res.json(category);
     });
-
-    await category.reload();
-
-    res.json(category);
-
   } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
+    res.status(500).json({ message: error.message });
   }
 };

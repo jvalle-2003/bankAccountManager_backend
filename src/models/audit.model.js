@@ -1,7 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const User = require("./user.model");
-
 const Audit = sequelize.define("Audit", {
     audit_id: { 
       type: DataTypes.INTEGER, 
@@ -35,7 +33,7 @@ const Audit = sequelize.define("Audit", {
     user_id: { 
         type: DataTypes.INTEGER, 
         allowNull: false, 
-        references: { model: User, key: "user_id" } 
+        
     },
     table_name: { 
       type: DataTypes.STRING(50), 
@@ -51,7 +49,5 @@ const Audit = sequelize.define("Audit", {
     timestamps: false,
 });
 
-Audit.belongsTo(User, { foreignKey: "user_id" });
-User.hasMany(Audit, { foreignKey: "user_id" });
 
 module.exports = Audit;

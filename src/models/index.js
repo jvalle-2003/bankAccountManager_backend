@@ -14,6 +14,7 @@ const User = require("./user.model");
 const Role = require("./role.model");
 const Permission = require("./permissions.model");
 const RolePermission = require("./role_permissions.model");
+const Audit = require("./audit.model");
 
 // ==========================================
 // DEFINICIÓN DE ASOCIACIONES (Relaciones)
@@ -25,6 +26,10 @@ Bank.hasMany(BankAccount, { foreignKey: "bank_id" });
 
 BankAccount.belongsTo(AccountType, { foreignKey: "account_type_id" });
 AccountType.hasMany(BankAccount, { foreignKey: "account_type_id" });
+
+// --- Relación: User y Audit (1 a Muchos) ---
+User.hasMany(Audit, { foreignKey: "user_id" });
+Audit.belongsTo(User, { foreignKey: "user_id" });
 
 // ==========================================
 // RELACIONES DE USUARIOS Y PERMISOS (agregar)
@@ -62,5 +67,6 @@ module.exports = {
     Role,
     Permission,
     RolePermission,
-    Transaction
+    Transaction,
+    Audit
 };

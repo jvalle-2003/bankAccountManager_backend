@@ -1,22 +1,46 @@
 const jwt = require('jsonwebtoken');
 const { User, Role, Permission } = require('../models');
 
+const getUserWithPermissions = async (userId) => {
+    return await User.findByPk(userId, {
+        include: [{
+            model: Role,
+            as: 'role',
+            include: [{
+                model: Permission,
+                as: 'permissions',
+                through: { attributes: [] }
+            }]
+        }]
+    });
+};
+
 const verifyToken = async (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1];
+
+    const token = req.cookies?.token; 
     
     if (!token) {
         return res.status(401).json({ 
             success: false,
-            message: 'Acceso denegado. No se proporcionó token.' 
+            message: 'Acceso denegado. No se proporcionó token (Cookie no encontrada).' 
         });
     }
     
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'gesbanca_secret_key_2026');
+        
+        req.user = decoded; 
         req.userId = decoded.user_id;
         req.userRole = decoded.role_id;
         req.username = decoded.username;
-        next();
+
+        const user = await getUserWithPermissions(decoded.user_id);
+        req.permissions = user?.role?.permissions?.map(p => ({
+            module: p.module,
+            action: p.action
+        })) ?? [];
+        
+        next(); 
     } catch (error) {
         if (error.name === 'TokenExpiredError') {
             return res.status(401).json({ 
@@ -55,7 +79,7 @@ const checkPermission = (requiredPermission) => {
                 });
             }
             
-            const isAdmin = user.role_id === 2;
+            const isAdmin = user.role_id === 1; 
             
             if (!isAdmin) {
                 const hasPermission = user.role?.permissions?.some(
@@ -81,4 +105,15 @@ const checkPermission = (requiredPermission) => {
     };
 };
 
-module.exports = { verifyToken, checkPermission };
+const isAdmin = (req, res, next) => {
+    if (req.userRole === 1) {
+        next(); 
+    } else {
+        return res.status(403).json({ 
+            success: false, 
+            message: "Acceso denegado. Solo los administradores pueden realizar esta acción." 
+        });
+    }
+};
+
+module.exports = { verifyToken, checkPermission, isAdmin, getUserWithPermissions};

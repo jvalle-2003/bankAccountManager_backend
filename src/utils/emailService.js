@@ -20,12 +20,11 @@ exports.sendEmail = async (to, subject, html) => {
             html
         });
         
-        console.log('✅ Correo enviado a:', to);
-        console.log('📧 ID del mensaje:', info.messageId);
+        console.log('Correo enviado a:', to);
         return info;
         
     } catch (error) {
-        console.error('❌ Error enviando correo:', error);
+        console.error('Error enviando correo:', error);
         throw error;
     }
 };

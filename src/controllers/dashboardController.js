@@ -3,7 +3,6 @@ const sequelize = require("../config/db");
 const getDashboardStats = async (req, res) => {
     try {
         // 1. Saldos por Símbolo de Moneda
-        // Cambié c.id_currency por c.symbol para que el frontend reciba 'Q' o '$'
         const [saldosPorMoneda] = await sequelize.query(`
             SELECT c.symbol AS id, SUM(a.current_balance) AS total 
             FROM Bank_Accounts a
@@ -19,12 +18,12 @@ const getDashboardStats = async (req, res) => {
             ORDER BY registration_date DESC
         `);
 
-        // 3. Distribución para la gráfica INDEPENDIZADA (Por Banco y Moneda)
+        // 3. Distribución para la gráfica (Por Banco y Moneda)
         const [distribucion] = await sequelize.query(`
             SELECT 
-            b.bank_name AS bank, 
-            c.symbol AS currency,
-            ISNULL(SUM(a.current_balance), 0) AS total 
+                b.bank_name AS bank, 
+                c.symbol AS currency,
+                ISNULL(SUM(a.current_balance), 0) AS total 
             FROM Banks b
             LEFT JOIN Bank_Accounts a ON b.bank_id = a.bank_id AND a.active = 1
             LEFT JOIN currencies c ON a.currency_id = c.id_currency
@@ -46,9 +45,7 @@ const getDashboardStats = async (req, res) => {
             WHERE reconciled = 0 AND cancelled = 0
         `);
 
-        // --- VALIDACIÓN DE SEGURIDAD ---
-        // SQL Server a veces devuelve los nombres de columnas en mayúsculas o minúsculas 
-        // dependiendo de la configuración. Aseguramos el acceso a .total o .TOTAL
+        // --- PROCESAMIENTO DE DATOS ---
         const totalTransacciones = transaccionesMes[0]?.total ?? transaccionesMes[0]?.TOTAL ?? 0;
         const totalPendientes = pendientes[0]?.total ?? pendientes[0]?.TOTAL ?? 0;
 

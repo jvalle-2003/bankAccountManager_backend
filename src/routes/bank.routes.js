@@ -1,11 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/bank.controller"); // ✅ Asegúrate que sea bankAccount
+const { verifyToken,isAdmin } = require("../middlewares/auth.middleware"); // ✅ Importa el middleware de autenticación
 
-router.post("/", controller.create);
-router.get("/", controller.findAll);
-router.get("/:id", controller.findOne);
-router.put("/:id", controller.update);
-router.delete("/:id", controller.delete);
+// RUTAS PUBLICAS
+router.get("/", verifyToken,     controller.findAll);
+router.get("/:id", verifyToken,  controller.findOne);
+
+// RUTAS PROTEGIDAS SOLO PARA ADMINISTRADORES
+router.post("/",verifyToken, isAdmin, controller.create);
+router.put("/:id", verifyToken, isAdmin, controller.update);
+router.delete("/:id", verifyToken, isAdmin, controller.delete);
 
 module.exports = router;

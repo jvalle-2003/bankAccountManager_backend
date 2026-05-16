@@ -6,8 +6,10 @@ const { runWithAudit } = require("../utils/audit.helper");
 ========================= */
 exports.create = async (req, res) => {
   try {
-    const currency = await Currency.create(req.body);
-    res.status(201).json(currency);
+    await runWithAudit(req, async (t) => {
+      const currency = await Currency.create(req.body, { transaction: t });
+      res.status(201).json(currency);   
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -42,52 +44,39 @@ exports.findOne = async (req, res) => {
 };
 
 /* =========================
-   ACTUALIZAR
+   ACTUALIZAR (Auditado)
 ========================= */
 exports.update = async (req, res) => {
   try {
-    const currency = await Currency.findByPk(req.params.id);
+    await runWithAudit(req, async (t) => {
+      const id = req.params.id.toUpperCase();
+      const currency = await Currency.findByPk(id);
+      if (!currency) return res.status(404).json({ message: "Currency not found" });
 
-    if (!currency)
-      return res.status(404).json({ message: "Currency not found" });
-
-    await currency.update(req.body);
-
-    res.json(currency);
+      await currency.update(req.body, { transaction: t });
+      res.json(currency);
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 /* =========================
-   ELIMINAR (lógico)
+   TOGGLE STATE (Auditado)
 ========================= */
 exports.toggleState = async (req, res) => {
   try {
-    const id = req.params.id.toUpperCase();
+    await runWithAudit(req, async (t) => {
+      const id = req.params.id.toUpperCase();
+      const currency = await Currency.findByPk(id);
+      if (!currency) return res.status(404).json({ message: "Currency not found" });
 
-    const currency = await Currency.findByPk(id);
-
-    if (!currency) {
-      return res.status(404).json({
-        message: "Currency not found"
-      });
-    }
-
-    // 👇 usar getter correctamente
-    currency.state = !currency.state;
-
-    await currency.save();
-
-    // recargar desde BD
-    await currency.reload();
-
-    res.json(currency);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: error.message
+      currency.state = !currency.state;
+      await currency.save({ transaction: t });
+      await currency.reload({ transaction: t });
+      res.json(currency);
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

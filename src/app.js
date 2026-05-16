@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-
+const cookieParser = require('cookie-parser'); // Ya lo tenías importado ¡Excelente!
 const categoryRoutes = require("./routes/category.routes");
 const transactionRoutes = require("./routes/transaction.routes");
 const bankAccountRoutes = require("./routes/bankAccount.routes");
@@ -23,9 +23,17 @@ const app = express();
    MIDDLEWARES
 ========================= */
 
-app.use(cors());
+// 1. MODIFICADO: Configuración de CORS para aceptar cookies
+app.use(cors({
+    origin: 'http://localhost:3000', // Cambia este puerto si tu frontend usa uno distinto (ej. 3000)
+    credentials: true                // Obligatorio para enviar/recibir httpOnly cookies
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// 2. NUEVO: Agregamos el middleware para leer las cookies
+app.use(cookieParser());
 
 /* =========================
    RUTAS API

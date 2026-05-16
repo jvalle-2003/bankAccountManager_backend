@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/balanceHistory.controller");
-const { verifyToken, checkPermission } = require("../middlewares/auth.middleware");
+const { verifyToken } = require("../middlewares/auth.middleware");
 
 router.use(verifyToken);
 
@@ -10,11 +10,11 @@ router.use(verifyToken);
 // ============================================
 
 // Cierre de mes
-router.post('/calculate-closing', controller.calculateMonthlyClosing);
+router.post('/calculate-closing',verifyToken, controller.calculateMonthlyClosing);
 router.post('/global-closing', controller.executeGlobalClosing);
 
 // Historial y consultas específicas
-router.get('/closing-history/:account_id', controller.getClosingHistory);
+router.get('/closing-history/:account_id', verifyToken, controller.getClosingHistory);
 router.get('/monthly-closing/:account_id/:year/:month', controller.getMonthlyClosing);
 router.get('/opening-balance/:account_id/:year/:month', controller.getOpeningBalance);
 router.get('/balance/:account_id/:balance_date', controller.getBalanceByDate);
@@ -30,6 +30,5 @@ router.put("/:id", controller.update);
 router.delete("/:id", controller.delete);
 
 // Verificar rutas cargadas
-console.log('Rutas de balance-history cargadas:', router.stack.map(r => r.route?.path));
 
 module.exports = router;

@@ -83,85 +83,14 @@ async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-
-    const t = await sequelize.transaction();
-
-    try {
-
-        if (!req.file) {
-
-            await t.rollback();
-
-            return res.status(400).json({
-                message: "Archivo requerido"
-            });
-        }
-
-        const { accountId } = req.body;
-
-        if (!accountId) {
-
-            await t.rollback();
-
-            return res.status(400).json({
-                message: "Cuenta requerida"
-            });
-        }
-
-        const result =
-            await reconciliationService
-                .processStatement({
-
-                    file: req.file,
-
-                    accountId
-                });
-
-        const reconciliation =
-            await Reconciliation.create({
-
-                account_id: accountId,
-
-                total_transactions:
-                    result.transactions.length,
-
-                reconciled:
-                    result.transactions.filter(
-                        t => t.status === 'CONCILIADO'
-                    ).length,
-
-                pending:
-                    result.transactions.filter(
-                        t => t.status === 'PENDIENTE'
-                    ).length,
-
-                bank:
-                    result.bank,
-
-                account_type:
-                    result.accountType
-            }, {
-                transaction: t
-            });
-
-        await t.commit();
-
-        res.status(201).json({
-            reconciliation,
-            transactions:
-                result.transactions
-        });
-
-    } catch (error) {
-
-        await t.rollback();
-
-        console.error(error);
-
-        res.status(500).json({
-            message: error.message
-        });
-    }
+  try {
+    await runWithAudit(req, async (t) => {
+    const reconciliation = await Reconciliations.create(req.body,{ transaction: t });
+    res.status(201).json(reconciliation);
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 exports.findAll = async (req, res) => {

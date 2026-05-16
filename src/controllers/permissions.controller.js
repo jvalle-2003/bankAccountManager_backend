@@ -5,8 +5,10 @@ const { runWithAudit } = require("../utils/audit.helper");
 ========================= */
 exports.create = async (req, res) => {
   try {
-    const permission = await Permissions.create(req.body);
+    await runWithAudit(req, async (t) => {
+    const permission = await Permissions.create(req.body,{ transaction: t });
     res.status(201).json(permission);
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -45,14 +47,16 @@ exports.findOne = async (req, res) => {
 ========================= */
 exports.update = async (req, res) => {
   try {
-    const permission = await Permissions.findByPk(req.params.id);
+    await runWithAudit(req, async (t) => {
+      const permission = await Permissions.findByPk(req.params.id);
 
-    if (!permission)
-      return res.status(404).json({ message: "Permission not found" });
+      if (!permission) {
+        return res.status(404).json({ message: "Permission not found" });
+      }
+      await permission.update(req.body, { transaction: t }); 
 
-    await permission.update(req.body);
-
-    res.json(permission);
+      res.json(permission);
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -63,14 +67,16 @@ exports.update = async (req, res) => {
 ========================= */
 exports.delete = async (req, res) => {
   try {
-    const permission = await Permissions.findByPk(req.params.id);
+    await runWithAudit(req, async (t) => {
+      const permission = await Permissions.findByPk(req.params.id);
 
-    if (!permission)
-      return res.status(404).json({ message: "Permission not found" });
+      if (!permission) {
+        return res.status(404).json({ message: "Permission not found" });
+      }
+      await permission.destroy({ transaction: t });
 
-    await permission.destroy();
-
-    res.json({ message: "Permission deleted successfully" });
+      res.json({ message: "Permission deleted successfully" });
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
