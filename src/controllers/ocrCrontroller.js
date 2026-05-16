@@ -19,7 +19,7 @@ exports.analizarEstadoCuenta = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 msg: "Debe seleccionar una cuenta"
-            });
+            });   
         }
 
         const filePath = req.file.path;
