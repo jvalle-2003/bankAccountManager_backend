@@ -19,16 +19,14 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.3",
-
     "pdf-parse": "^1.1.4",
-    
     "pdfkit": "^0.18.0",
     "pdfkit-table": "^0.1.99",
-
     "sequelize": "^6.37.8",
     "sharp": "^0.34.5",
     "tedious": "^19.2.1",
-    "tesseract.js": "^7.0.0"
+    "tesseract.js": "^7.0.0",
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

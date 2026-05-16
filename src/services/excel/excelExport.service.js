@@ -1,5 +1,5 @@
 const ExcelJS = require('exceljs');
-const { Transaction } = require('../models');
+const { Transaction } = require('../../models');
 
 exports.descargarExcelComparativo = async (req, res) => {
     try {
