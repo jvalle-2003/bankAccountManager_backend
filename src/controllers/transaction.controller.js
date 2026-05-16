@@ -3,6 +3,7 @@ const Transaction = require('../models/transaction.model');
 const Bank_Account = require('../models/bankAccount.model'); 
 const { runWithAudit } = require("../utils/audit.helper");
 const sequelize = require('../config/db'); 
+const { Op } = require('sequelize')
 
 /* =========================
    1. CREATE (Auditado)
@@ -154,4 +155,58 @@ exports.cancel = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+// controllers/transaction.controller.js (agrega esta función)
+exports.reconcileBatch = async (req, res) => {
+    const { transactions } = req.body;
+    // transactions = [{ reference, date, amount, type }]
+
+    if (!Array.isArray(transactions) || transactions.length === 0) {
+        return res.status(400).json({ error: 'No transactions provided' });
+    }
+
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+    const results = [];
+
+    for (const tx of transactions) {
+        try {
+            // Buscar en BD por referencia y monto
+            const found = await Transaction.findOne({
+                where: {
+                    reference_number: tx.reference,
+                    amount: tx.amount,
+                    reconciled: false,
+                    transaction_date: { [Op.gte]: threeMonthsAgo }
+                }
+            });
+
+            if (found) {
+                await found.update({
+                    reconciled: true,
+                    reconciliation_date: new Date()
+                });
+                results.push({ reference: tx.reference, status: 'CONCILIADO' });
+            } else {
+                // Verificar si existe pero está vencida (> 3 meses)
+                const expired = await Transaction.findOne({
+                    where: {
+                        reference_number: tx.reference,
+                        amount: tx.amount,
+                        transaction_date: { [Op.lt]: threeMonthsAgo }
+                    }
+                });
+                results.push({
+                    reference: tx.reference,
+                    status: expired ? 'VENCIDO' : 'NO_ENCONTRADO'
+                });
+            }
+        } catch (err) {
+            results.push({ reference: tx.reference, status: 'ERROR' });
+        }
+    }
+
+    return res.json({ results });
 };

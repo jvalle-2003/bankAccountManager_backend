@@ -11,5 +11,7 @@ router.get("/", verifyToken, controller.findAll);
 router.get("/:id", verifyToken,  controller.findOne);
 router.put("/:id", verifyToken,  controller.update);
 
+router.post('/reconcile-batch', controller.reconcileBatch);
+
 
 module.exports = router;
