@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const controller = require("../controllers/bank.controller"); // ✅ Asegúrate que sea bankAccount
-const { verifyToken,isAdmin } = require("../middlewares/auth.middleware"); // ✅ Importa el middleware de autenticación
+const controller = require("../controllers/bank.controller");
+const { verifyToken,isAdmin } = require("../middlewares/auth.middleware"); 
 
 // RUTAS PUBLICAS
 router.get("/", verifyToken,     controller.findAll);

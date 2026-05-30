@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const cookieParser = require('cookie-parser'); // Ya lo tenías importado ¡Excelente!
+const cookieParser = require('cookie-parser'); 
 const categoryRoutes = require("./routes/category.routes");
 const transactionRoutes = require("./routes/transaction.routes");
 const bankAccountRoutes = require("./routes/bankAccount.routes");

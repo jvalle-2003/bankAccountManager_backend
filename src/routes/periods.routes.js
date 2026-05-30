@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/periods.controller");
-const verifyToken = require("../middlewares/auth.middleware").verifyToken; // Asegúrate de importar el middleware de autenticación
+const verifyToken = require("../middlewares/auth.middleware").verifyToken; 
 
 router.post("/", verifyToken, controller.create);
 router.get("/", verifyToken, controller.findAll);

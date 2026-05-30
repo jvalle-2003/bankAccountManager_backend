@@ -40,8 +40,7 @@ const BankAccount = sequelize.define("BankAccount", {
   },
   created_at: {
     type: DataTypes.DATE,
-    defaultValue: sequelize.literal('GETDATE()'), // ✅ Usa GETDATE() nativo de SQL Server
-    allowNull: false
+    allowNull: false  // Ya no tiene defaultValue, el usuario debe ingresarlo
   }
 }, {
   tableName: "Bank_Accounts",
@@ -49,11 +48,11 @@ const BankAccount = sequelize.define("BankAccount", {
 });
 
 // Asociaciones
-    BankAccount.associate = (models) => {
-        BankAccount.belongsTo(models.Currency, {
-            foreignKey: 'currency_id',
-            as: 'Currency'
-        });
-    };
+BankAccount.associate = (models) => {
+    BankAccount.belongsTo(models.Currency, {
+        foreignKey: 'currency_id',
+        as: 'Currency'
+    });
+};
 
 module.exports = BankAccount;

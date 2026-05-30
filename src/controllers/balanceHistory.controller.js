@@ -88,13 +88,7 @@ exports.delete = async (req, res) => {
 exports.getMonthlyStatement = async (req, res) => {
     try {
         const { account_id, year, month } = req.params;
-        
-        console.log('=== PARÁMETROS RECIBIDOS ===');
-        console.log('account_id:', account_id);
-        console.log('year:', year);
-        console.log('month:', month);
-        
-        // ✅ 1. BUSCAR EL CIERRE DE MES EN Balance_History
+
         const closing = await BalanceHistory.findOne({
             where: {
                 account_id: parseInt(account_id),
@@ -105,22 +99,14 @@ exports.getMonthlyStatement = async (req, res) => {
         });
         
         if (!closing) {
-            console.log('❌ No existe cierre para este período');
             return res.status(404).json({
                 success: false,
                 message: `No existe cierre para ${year}/${month} de la cuenta ${account_id}. Ejecute el cierre primero.`
             });
         }
         
-        console.log('✅ Cierre encontrado:');
-        console.log('   - previous_balance:', closing.previous_balance);
-        console.log('   - closing_balance:', closing.closing_balance);
-        console.log('   - monthly_credits:', closing.monthly_credits);
-        console.log('   - monthly_debits:', closing.monthly_debits);
-        console.log('   - transaction_count:', closing.transaction_count);
-        
-        // ✅ 2. Calcular fechas correctamente
-        const startDate = `${year}-${String(month).padStart(2, '0')}-01 00:00:00`;
+
+          const startDate = `${year}-${String(month).padStart(2, '0')}-01 00:00:00`;
         
         // Último día del mes
         const lastDay = new Date(parseInt(year), parseInt(month), 0);
@@ -158,21 +144,12 @@ exports.getMonthlyStatement = async (req, res) => {
             }
         );
         
-        console.log(`✅ Transacciones encontradas:`, transactions.length);
-        
-        // ✅ 4. USAR LOS VALORES DEL CIERRE, NO RECALCULAR
         const openingBalance = parseFloat(closing.previous_balance) || 0;
         const totalCredits = parseFloat(closing.monthly_credits) || 0;
         const totalDebits = parseFloat(closing.monthly_debits) || 0;
         const closingBalance = parseFloat(closing.closing_balance) || 0;
         const transactionCount = closing.transaction_count || transactions.length;
         
-        console.log('=== VALORES DEL CIERRE ===');
-        console.log('opening_balance (de Balance_History):', openingBalance);
-        console.log('total_credits:', totalCredits);
-        console.log('total_debits:', totalDebits);
-        console.log('closing_balance:', closingBalance);
-        console.log('transaction_count:', transactionCount);
         
         res.json({
             success: true,
@@ -263,27 +240,14 @@ exports.calculateMonthlyClosing = async (req, res) => {
     try {
         const { account_id, year, month, closed_by = null } = req.body;
         
-        console.log('═══════════════════════════════════════════════════════════');
-        console.log('🚀 INICIANDO CIERRE DE MES');
-        console.log('═══════════════════════════════════════════════════════════');
-        console.log('📥 PARÁMETROS RECIBIDOS:');
-        console.log('   - account_id:', account_id, '(tipo:', typeof account_id, ')');
-        console.log('   - year:', year, '(tipo:', typeof year, ')');
-        console.log('   - month:', month, '(tipo:', typeof month, ')');
-        console.log('   - closed_by:', closed_by);
-        
         // Validar parámetros
         if (!account_id || !year || !month) {
-            console.log('❌ ERROR: Faltan parámetros obligatorios');
             await t.rollback();
             return res.status(400).json({
                 success: false,
                 message: 'Faltan parámetros: account_id, year, month'
             });
         }
-        
-        // ✅ 1. OBTENER DATOS DE LA CUENTA
-        console.log('\n📌 PASO 1: Buscando cuenta en Bank_Accounts...');
         
         let accountData = null;
         
@@ -300,9 +264,8 @@ exports.calculateMonthlyClosing = async (req, res) => {
                 }
             );
             accountData = result;
-            console.log('   🔍 Buscando en "Bank_Accounts":', accountData ? 'ENCONTRADA' : 'NO ENCONTRADA');
         } catch (error) {
-            console.log('   ⚠️ Error en Bank_Accounts:', error.message);
+            console.log( error.message);
         }
         
         // Si no se encontró, intentar con minúsculas "bank_accounts"
@@ -319,14 +282,12 @@ exports.calculateMonthlyClosing = async (req, res) => {
                     }
                 );
                 accountData = result;
-                console.log('   🔍 Buscando en "bank_accounts":', accountData ? 'ENCONTRADA' : 'NO ENCONTRADA');
             } catch (error) {
-                console.log('   ⚠️ Error en bank_accounts:', error.message);
+                console.log( error.message);
             }
         }
         
         if (!accountData) {
-            console.log('❌ ERROR: Cuenta no encontrada en ninguna tabla');
             await t.rollback();
             return res.status(404).json({
                 success: false,
@@ -334,13 +295,7 @@ exports.calculateMonthlyClosing = async (req, res) => {
             });
         }
         
-        console.log('   ✅ Cuenta encontrada:');
-        console.log('      - account_id:', accountData.account_id);
-        console.log('      - initial_balance:', accountData.initial_balance);
-        console.log('      - current_balance:', accountData.current_balance);
-        
-        // ✅ 2. VERIFICAR SI YA EXISTE CIERRE
-        console.log('\n📌 PASO 2: Verificando si ya existe cierre para este período...');
+
         
         const existingClosing = await BalanceHistory.findOne({
             where: {
@@ -353,11 +308,7 @@ exports.calculateMonthlyClosing = async (req, res) => {
         });
         
         if (existingClosing) {
-            console.log('   ⚠️ YA EXISTE un cierre para este período:');
-            console.log('      - history_id:', existingClosing.history_id);
-            console.log('      - closing_balance:', existingClosing.closing_balance);
-            console.log('      - previous_balance:', existingClosing.previous_balance);
-            
+
             await t.rollback();
             return res.status(409).json({
                 success: false,
@@ -365,21 +316,13 @@ exports.calculateMonthlyClosing = async (req, res) => {
             });
         }
         
-        console.log('   ✅ No existe cierre previo, continuando...');
-        
-        // ✅ 3. CALCULAR FECHAS DEL MES
-        console.log('\n📌 PASO 3: Calculando fechas del mes...');
+
         
         const lastDay = new Date(parseInt(year), parseInt(month), 0);
         const balance_date = lastDay.toISOString().split('T')[0];
         const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
         
-        console.log('   - Primer día del mes (startDate):', startDate);
-        console.log('   - Último día del mes (endDate):', balance_date);
-        console.log('   - Fecha cálculo:', new Date().toLocaleString());
-        
-        // ✅ 4. CALCULAR SALDO ANTERIOR (previous_balance)
-        console.log('\n📌 PASO 4: Calculando saldo anterior...');
+
         
         let previousBalance = 0;
         let previousMonthBalance = null;
@@ -406,22 +349,12 @@ exports.calculateMonthlyClosing = async (req, res) => {
         
         if (previousMonthBalance) {
             previousBalance = parseFloat(previousMonthBalance.closing_balance);
-            console.log('   ✅ Cierre anterior ENCONTRADO:');
-            console.log('      - closing_balance:', previousBalance);
-            console.log('      - history_id:', previousMonthBalance.history_id);
         } else {
             // Si no hay cierre anterior, usar el initial_balance de la cuenta
             previousBalance = parseFloat(accountData.initial_balance) || 0;
-            console.log('   ℹ️ No hay cierre anterior, usando INITIAL_BALANCE de la cuenta:');
-            console.log('      - initial_balance:', accountData.initial_balance);
-            console.log('      - previous_balance asignado:', previousBalance);
         }
         
-        // ✅ 5. OBTENER TRANSACCIONES DEL MES
-        console.log('\n📌 PASO 5: Obteniendo transacciones del período...');
-        console.log('   - Filtro: account_id =', account_id);
-        console.log('   - Filtro: cancelled = 0');
-        console.log('   - Rango fechas:', startDate, 'a', balance_date);
+
         
         const transactions = await sequelize.query(
             `SELECT 
@@ -447,19 +380,13 @@ exports.calculateMonthlyClosing = async (req, res) => {
             }
         );
         
-        console.log('   ✅ Transacciones encontradas:', transactions.length);
         
         if (transactions.length > 0) {
-            console.log('   📋 LISTADO DE TRANSACCIONES:');
             transactions.forEach((tx, index) => {
                 console.log(`      ${index + 1}. Fecha: ${tx.transaction_date}, Concepto: ${tx.concept?.substring(0, 30)}, Monto: ${tx.amount}, Tipo: ${tx.movement_type}`);
             });
-        } else {
-            console.log('   ℹ️ No hay transacciones en este período');
-        }
-        
-        // ✅ 6. CALCULAR TOTALES DEL MES
-        console.log('\n📌 PASO 6: Calculando totales del mes...');
+        } 
+
         
         let monthlyCredits = 0;
         let monthlyDebits = 0;
@@ -470,30 +397,16 @@ exports.calculateMonthlyClosing = async (req, res) => {
             
             if (isCredit) {
                 monthlyCredits += amount;
-                console.log(`   💚 CRÉDITO: +${amount} (Acumulado: ${monthlyCredits})`);
             } else {
                 monthlyDebits += amount;
-                console.log(`   ❤️ DÉBITO: -${amount} (Acumulado: ${monthlyDebits})`);
             }
         }
+
         
-        console.log('   ✅ TOTALES DEL MES:');
-        console.log('      - Total Créditos (INGRESOS):', monthlyCredits);
-        console.log('      - Total Débitos (EGRESOS):', monthlyDebits);
-        
-        // ✅ 7. CALCULAR SALDO DE CIERRE
-        console.log('\n📌 PASO 7: Calculando saldo de cierre...');
-        console.log('   Fórmula: SaldoCierre = SaldoAnterior + Créditos - Débitos');
-        console.log(`   - Saldo anterior: ${previousBalance}`);
-        console.log(`   - + Créditos: ${monthlyCredits}`);
-        console.log(`   - - Débitos: ${monthlyDebits}`);
+
         
         const closingBalance = previousBalance + monthlyCredits - monthlyDebits;
-        
-        console.log(`   ✅ RESULTADO: Saldo de cierre = ${closingBalance}`);
-        
-        // ✅ 8. GUARDAR EN BALANCE_HISTORY
-        console.log('\n📌 PASO 8: Guardando en Balance_History...');
+
         
         const balanceRecord = await BalanceHistory.create({
             account_id: parseInt(account_id),
@@ -511,27 +424,10 @@ exports.calculateMonthlyClosing = async (req, res) => {
             notes: `Cierre de mes ${month}/${year}`
         }, { transaction: t });
         
-        console.log('   ✅ Registro guardado correctamente:');
-        console.log('      - history_id:', balanceRecord.history_id);
-        console.log('      - balance_date:', balanceRecord.balance_date);
-        console.log('      - previous_balance:', balanceRecord.previous_balance);
-        console.log('      - closing_balance:', balanceRecord.closing_balance);
-        console.log('      - transaction_count:', balanceRecord.transaction_count);
-        
+
         await t.commit();
         
-        console.log('\n═══════════════════════════════════════════════════════════');
-        console.log('🎉 CIERRE DE MES COMPLETADO CON ÉXITO');
-        console.log('═══════════════════════════════════════════════════════════');
-        console.log('📊 RESUMEN FINAL:');
-        console.log('   - Cuenta:', account_id);
-        console.log('   - Período:', `${month}/${year}`);
-        console.log('   - Saldo anterior:', previousBalance);
-        console.log('   - Ingresos del mes:', monthlyCredits);
-        console.log('   - Egresos del mes:', monthlyDebits);
-        console.log('   - Saldo de cierre:', closingBalance);
-        console.log('   - Total transacciones:', transactions.length);
-        console.log('═══════════════════════════════════════════════════════════\n');
+
         
         res.status(201).json({
             success: true,
@@ -550,13 +446,7 @@ exports.calculateMonthlyClosing = async (req, res) => {
         
     } catch (error) {
         await t.rollback();
-        
-        console.log('\n═══════════════════════════════════════════════════════════');
-        console.log('❌ ERROR EN CIERRE DE MES');
-        console.log('═══════════════════════════════════════════════════════════');
-        console.log('Mensaje de error:', error.message);
-        console.log('Stack trace:', error.stack);
-        console.log('═══════════════════════════════════════════════════════════\n');
+
         
         res.status(500).json({
             success: false,

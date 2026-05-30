@@ -2,8 +2,7 @@ const express = require("express");
 const router = express.Router();
 // Importamos el controlador correcto
 const controller = require("../controllers/bankAccount.controller");
-const verifyToken = require("../middlewares/auth.middleware").verifyToken; // Asegúrate de importar el middleware de autenticación
-
+const verifyToken = require("../middlewares/auth.middleware").verifyToken; 
 // Definición de rutas para Cuentas Bancarias
 router.post("/",verifyToken, controller.create);           // Crear cuenta
 router.get("/", verifyToken, controller.findAll);          // Obtener todas
