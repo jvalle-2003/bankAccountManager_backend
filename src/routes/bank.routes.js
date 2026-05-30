@@ -8,8 +8,8 @@ router.get("/", verifyToken,     controller.findAll);
 router.get("/:id", verifyToken,  controller.findOne);
 
 // RUTAS PROTEGIDAS SOLO PARA ADMINISTRADORES
-router.post("/",verifyToken, isAdmin, controller.create);
-router.put("/:id", verifyToken, isAdmin, controller.update);
-router.delete("/:id", verifyToken, isAdmin, controller.delete);
+router.post("/",verifyToken, controller.create);
+router.put("/:id", verifyToken, controller.update);
+router.delete("/:id", verifyToken, controller.delete);
 
 module.exports = router;
